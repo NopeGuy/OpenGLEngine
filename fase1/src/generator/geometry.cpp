@@ -2,18 +2,28 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+#include <filesystem>
 #include <cmath>
 
-// Função para gerar e guardar os dados da esfera
-void generateSphere(float radius, int slices, int stacks, const std::string& filename){
-    std::ofstream file(filename);
+namespace fs = std::filesystem;
+
+void generateSphere(float radius, int slices, int stacks, const std::string& filename) {
+    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    if (!fs::exists(outputPath)) {
+        fs::create_directories(outputPath);
+    }
+
+    fs::path filePath = outputPath / filename;
+
+    std::ofstream file(filePath);
     if (!file.is_open()) {
-        std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
+        std::cerr << "Não foi possível abrir o arquivo para escrita: " << filePath << std::endl;
         return;
     }
 
@@ -37,11 +47,19 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
     }
 
     file.close();
-    std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
+    std::cout << "Arquivo '" << filePath << "' criado com sucesso." << std::endl;
 }
 
+
 void generateBox(float size, int divisions, const std::string& filename){
-    std::ofstream file(filename);
+    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    if (!fs::exists(outputPath)) {
+        fs::create_directories(outputPath);
+    }
+
+    fs::path filePath = outputPath / filename;
+
+    std::ofstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
@@ -86,7 +104,14 @@ void generateBox(float size, int divisions, const std::string& filename){
 }
 
 void generatePlane(float size, int divisions, const std::string& filename){
-    std::ofstream file(filename);
+    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    if (!fs::exists(outputPath)) {
+        fs::create_directories(outputPath);
+    }
+
+    fs::path filePath = outputPath / filename;
+
+    std::ofstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
@@ -120,7 +145,14 @@ void generatePlane(float size, int divisions, const std::string& filename){
 
 
 void generateCone(float radius, float height, int slices, int stacks, const std::string& filename){
-    std::ofstream file(filename);
+    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    if (!fs::exists(outputPath)) {
+        fs::create_directories(outputPath);
+    }
+
+    fs::path filePath = outputPath / filename;
+
+    std::ofstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
