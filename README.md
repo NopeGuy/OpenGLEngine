@@ -8,6 +8,7 @@ This project aims to develop a mini scene graph-based 3D engine for handling gra
 ### Generator
 - The generator application creates model files for graphical primitives such as Plane, Box, Sphere, and Cone.
 - Example commands:
+  - `g++ *.cpp -o filename`
   - `generator sphere 1 10 10 sphere.3d`
   - `generator box 2 3 box.3d`
   - `generator cone 1 2 4 3 cone.3d`
