@@ -8,7 +8,7 @@
     </camera>
 	<group> 
   		<models> 
-            <model file="../Fase_1/outputs/sphere.3d" /> 
+            <model file="..\output\sphere_1_10_10.3d" /> 
  		</models>
  	</group>
 </world>

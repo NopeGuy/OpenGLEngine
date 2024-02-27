@@ -15,7 +15,7 @@
 namespace fs = std::filesystem;
 
 void generateSphere(float radius, int slices, int stacks, const std::string& filename) {
-    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
@@ -53,7 +53,7 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
 
 
 void generateBox(float size, int divisions, const std::string& filename){
-    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
@@ -105,7 +105,7 @@ void generateBox(float size, int divisions, const std::string& filename){
 }
 
 void generatePlane(float size, int divisions, const std::string& filename){
-    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
@@ -146,7 +146,7 @@ void generatePlane(float size, int divisions, const std::string& filename){
 
 
 void generateCone(float radius, float height, int slices, int stacks, const std::string& filename){
-    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
