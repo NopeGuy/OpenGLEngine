@@ -10,6 +10,7 @@
 #endif
 #include <filesystem>
 #include <cmath>
+#include <corecrt_math_defines.h>
 
 namespace fs = std::filesystem;
 
