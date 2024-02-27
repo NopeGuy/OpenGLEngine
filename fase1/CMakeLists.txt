@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 # Project Name
 PROJECT(fase1)
-
+set (CMAKE_CXX_STANDARD 20)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Define os executáveis a serem construídos neste projecto
@@ -10,15 +10,15 @@ add_executable(engine.exe ./src/engine/engine.cpp)
 add_executable(generator.exe ./src/generator/generator.cpp ./src/generator/geometry.cpp)
 
 # Biblioteca das figuras e dos pontos
-add_library(
-	utils_lib
-	./src/utils/ponto.cpp
-	./src/utils/ponto.hpp
-	./src/utils/figura.cpp
-	./src/utils/figura.hpp
-	./src/utils/list.cpp
-	./src/utils/list.hpp
-)
+#add_library(
+#	utils_lib
+#	./src/utils/ponto.cpp
+#	./src/utils/ponto.hpp
+#	./src/utils/figura.cpp
+#	./src/utils/figura.hpp
+#	./src/utils/list.cpp
+#	./src/utils/list.hpp
+#)
 
 # Biblioteca de parsing de XML
 add_library(
@@ -41,7 +41,7 @@ add_library(
 target_link_libraries(config_lib tinyXML)
 
 # Associa a biblioteca das figuras e dos pontos aos executáveis
-target_link_libraries(generator.exe utils_lib)
+#target_link_libraries(generator.exe utils_lib)
 target_link_libraries(engine.exe utils_lib tinyXML config_lib)
 
 find_package(OpenGL REQUIRED)
