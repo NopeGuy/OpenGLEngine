@@ -30,7 +30,6 @@ void addPonto(Figura f, Ponto p){
     }
 }
 
-// TODO FUNCAO DO PEDRO QUE N SABE BEM O QUE FEZ, VERIFICAR SE ESTÁ BEM.
 void addPontos(Figura f, Figura toAdd){
     if(f){
         List pontos = toAdd->pontos;
