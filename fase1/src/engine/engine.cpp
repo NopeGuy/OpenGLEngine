@@ -41,7 +41,7 @@ float upz = 0.0f;
 
 int mode = GL_LINE;
 
-Config configuration = NULL;
+Config parser = NULL;
 List figuras = NULL;
 
 void changeSize(int w, int h) {
@@ -191,25 +191,25 @@ void keyProc(unsigned char key, int x, int y) {
 
 int main(int argc, char *argv[]) {
 
-	Config configuration = newConfig();
+	Parser parser = newParser();
 	// Carregamento dos dados das figuras
-	configuration = xmlToConfig(argv[1]); 
-	List models   = getModels(configuration); // !NÃO FAZER DELETE DESTA LISTA! contém as paths dos modelos presentes no ficheiro de configuração
+	parser = xmlToConfig(argv[1]); 
+	List models   = getModels(parser); // !NÃO FAZER DELETE DESTA LISTA! contém as paths dos modelos presentes no ficheiro de configuração
 	figuras 	  = newEmptyList(); // figuras no ficheiro de configuração
 	for(unsigned int i = 0; i < getListLength(models); i++){
 		addValueList(figuras, fileToFigura((char*)getListElemAt(models,i)));
 	}
 	// Carregamento dos dados da câmara
-	camx    = getXPosCam(configuration);
-	camy    = getYPosCam(configuration);
-	camz    = getZPosCam(configuration);
+	camx    = getXPosCam(parser);
+	camy    = getYPosCam(parser);
+	camz    = getZPosCam(parser);
 	radius  = sqrt(camx*camx + camy*camy + camz*camz);
-	lookAtx = getXLookAt(configuration);
-	lookAty = getYLookAt(configuration);
-	lookAtz = getZLookAt(configuration);
-	upx 	= getXUp(configuration);
-	upy 	= getYUp(configuration);
-	upz 	= getZUp(configuration);
+	lookAtx = getXLookAt(parser);
+	lookAty = getYLookAt(parser);
+	lookAtz = getZLookAt(parser);
+	upx 	= getXUp(parser);
+	upy 	= getYUp(parser);
+	upz 	= getZUp(parser);
 	alpha = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_ = asin(camy/radius);
 	// init GLUT and the window
