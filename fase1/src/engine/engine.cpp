@@ -11,6 +11,7 @@
 #include "../utils/ponto.hpp"
 #include "../utils/list.hpp"
 #include "../tinyXML/tinyxml2.h"
+#include "../utils/parser.hpp"
 
 using namespace std;
 
@@ -35,11 +36,23 @@ float lookAtz = 0.0f;
 float upx = 0.0f;
 float upy = 0.0f;
 float upz = 0.0f;
+float fov = 0.0f;
+float near = 0.0f;
+float far = 0.0f;
+
+
+// Window Settings
+int width = 0;
+int height = 0;
+
+// File Settings
+std::string fileName = "";
 
 int mode = GL_LINE;
 
-Config configuration = NULL;
 List figuras = NULL;
+
+
 
 void changeSize(int w, int h) {
 
@@ -188,27 +201,28 @@ void keyProc(unsigned char key, int x, int y) {
 
 int main(int argc, char *argv[]) {
 
-	Config configuration = newConfig();
-	// Carregamento dos dados das figuras
-	configuration = xmlToConfig(argv[1]); 
-	List models   = getModels(configuration); // !NÃO FAZER DELETE DESTA LISTA! contém as paths dos modelos presentes no ficheiro de configuração
-	figuras 	  = newEmptyList(); // figuras no ficheiro de configuração
-	for(unsigned int i = 0; i < getListLength(models); i++){
-		addValueList(figuras, fileToFigura((char*)getListElemAt(models,i)));
-	}
-	// Carregamento dos dados da câmara
-	camx    = getXPosCam(configuration);
-	camy    = getYPosCam(configuration);
-	camz    = getZPosCam(configuration);
-	radius  = sqrt(camx*camx + camy*camy + camz*camz);
-	lookAtx = getXLookAt(configuration);
-	lookAty = getYLookAt(configuration);
-	lookAtz = getZLookAt(configuration);
-	upx 	= getXUp(configuration);
-	upy 	= getYUp(configuration);
-	upz 	= getZUp(configuration);
-	alpha = acos(camz/sqrt(camx*camx + camz*camz));
-	beta_ = asin(camy/radius);
+	std::string filePath = "config.xml";
+	ParserSettings* settings = ParserSettingsConstructor(filePath);
+	camx    = settings->camera.positionX;
+	camy    = settings->camera.positionY;
+	camz    = settings->camera.positionZ;
+	lookAtx = settings->camera.lookAtX;
+	lookAty = settings->camera.lookAtY;
+	lookAtz = settings->camera.lookAtZ;
+	upx 	= settings->camera.upX;
+	upy 	= settings->camera.upY;
+	upz 	= settings->camera.upZ;
+	fov     = settings->camera.fov;
+	near    = settings->camera.near;
+	far     = settings->camera.far;
+	width	= settings->window.width;
+	height	= settings->window.height;
+	fileName = settings->modelFiles[0].fileName;
+	radius	= sqrt(camx * camx + camy * camy + camz * camz);
+	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
+	beta_   = asin(camy/radius);
+
+
 	// init GLUT and the window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA);

@@ -1,28 +1,45 @@
-#ifndef PARSER_HPP
-#define PARSER_HPP
+#ifndef PARSER_SETTINGS_HPP
+#define PARSER_SETTINGS_HPP
 
-#include <string>
+#include <iostream>
 #include <vector>
-#include "tinyxml/tinyxml2.h"
+#include <string>
+#include "../tinyXML/tinyxml2.h"
 
 struct WindowSettings {
-    int width, height;
+    int width = 0;
+    int height = 0;
 };
 
 struct CameraSettings {
-    float positionX, positionY, positionZ;
-    float lookAtX, lookAtY, lookAtZ;
-    float upX, upY, upZ;
-    float fov, near, far;
+    float positionX = 0.0f;
+    float positionY = 0.0f;
+    float positionZ = 0.0f;
+    float lookAtX = 0.0f;
+    float lookAtY = 0.0f;
+    float lookAtZ = 0.0f;
+    float upX = 0.0f;
+    float upY = 0.0f;
+    float upZ = 0.0f;
+    float fov = 0.0f;
+    float near = 0.0f;
+    float far = 0.0f;
 };
 
 struct ModelFile {
     std::string fileName;
 };
 
+struct ParserSettings {
+    WindowSettings window;
+    CameraSettings camera;
+    std::vector<ModelFile> modelFiles;
+};
+
 void parseWindowSettings(tinyxml2::XMLElement* windowElement, WindowSettings& window);
 void parseCameraSettings(tinyxml2::XMLElement* cameraElement, CameraSettings& camera);
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles);
 bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc);
+ParserSettings* ParserSettingsConstructor(const std::string& filePath);
 
-#endif // PARSER_HPP
+#endif // PARSER_SETTINGS_HPP

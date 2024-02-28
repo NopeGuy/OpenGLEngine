@@ -4,42 +4,34 @@
 #include "../tinyXML/tinyxml2.h"
 
 struct WindowSettings {
-    int width, height;
+    int width = 0;
+    int height = 0;
 };
 
 struct CameraSettings {
-    float positionX, positionY, positionZ;
-    float lookAtX, lookAtY, lookAtZ;
-    float upX, upY, upZ;
-    float fov, near, far;
+    float positionX = 0.0f;
+    float positionY = 0.0f;
+    float positionZ = 0.0f;
+    float lookAtX = 0.0f;
+    float lookAtY = 0.0f;
+    float lookAtZ = 0.0f;
+    float upX = 0.0f;
+    float upY = 0.0f;
+    float upZ = 0.0f;
+    float fov = 0.0f;
+    float near = 0.0f;
+    float far = 0.0f;
 };
 
 struct ModelFile {
     std::string fileName;
 };
 
-void printWindowSettings(const WindowSettings& window) {
-    std::cout << "Window Settings:" << std::endl;
-    std::cout << "Width: " << window.width << std::endl;
-    std::cout << "Height: " << window.height << std::endl;
-}
-
-void printCameraSettings(const CameraSettings& camera) {
-    std::cout << "Camera Settings:" << std::endl;
-    std::cout << "Position: (" << camera.positionX << ", " << camera.positionY << ", " << camera.positionZ << ")" << std::endl;
-    std::cout << "LookAt: (" << camera.lookAtX << ", " << camera.lookAtY << ", " << camera.lookAtZ << ")" << std::endl;
-    std::cout << "Up: (" << camera.upX << ", " << camera.upY << ", " << camera.upZ << ")" << std::endl;
-    std::cout << "FOV: " << camera.fov << std::endl;
-    std::cout << "Near Plane: " << camera.near << std::endl;
-    std::cout << "Far Plane: " << camera.far << std::endl;
-}
-
-void printModelFiles(const std::vector<ModelFile>& modelFiles) {
-    std::cout << "Model Files:" << std::endl;
-    for (const auto& model : modelFiles) {
-        std::cout << model.fileName << std::endl;
-    }
-}
+struct ParserSettings {
+    WindowSettings window;
+    CameraSettings camera;
+    std::vector<ModelFile> modelFiles;
+};
 
 void parseWindowSettings(tinyxml2::XMLElement* windowElement, WindowSettings& window) {
     if (windowElement) {
@@ -104,30 +96,34 @@ bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc) {
     return true;
 }
 
-int main() {
-    tinyxml2::XMLDocument doc;
+ParserSettings* ParserSettingsConstructor(const std::string& filePath) {
+    ParserSettings* settings = new ParserSettings;
 
-    // Insert the full path to the XML file
-    char filePath[] = "/Example/Path/To/Your/File.xml";
+    tinyxml2::XMLDocument doc;
     if (!loadXML(filePath, doc)) {
-        return 1;
+        return nullptr;
     }
 
-    WindowSettings window;
-    tinyxml2::XMLElement* windowElement = doc.FirstChildElement("world")->FirstChildElement("window");
-    parseWindowSettings(windowElement, window);
+    tinyxml2::XMLElement* worldElement = doc.FirstChildElement("world");
+    if (!worldElement) {
+        std::cerr << "World element not found." << std::endl;
+        exit(1);
+    }
 
-    CameraSettings camera;
-    tinyxml2::XMLElement* cameraElement = doc.FirstChildElement("world")->FirstChildElement("camera");
-    parseCameraSettings(cameraElement, camera);
+    tinyxml2::XMLElement* windowElement = worldElement->FirstChildElement("window");
+    parseWindowSettings(windowElement, settings->window);
 
-    std::vector<ModelFile> modelFiles;
-    tinyxml2::XMLElement* modelsElement = doc.FirstChildElement("world")->FirstChildElement("group")->FirstChildElement("models");
-    parseModelFiles(modelsElement, modelFiles);
+    tinyxml2::XMLElement* cameraElement = worldElement->FirstChildElement("camera");
+    parseCameraSettings(cameraElement, settings->camera);
 
-    printWindowSettings(window);
-    printCameraSettings(camera);
-    printModelFiles(modelFiles);
+    tinyxml2::XMLElement* groupElement = worldElement->FirstChildElement("group");
+    if (!groupElement) {
+        std::cerr << "Group element not found." << std::endl;
+        exit(1);
+    }
 
-    return 0;
+    tinyxml2::XMLElement* modelsElement = groupElement->FirstChildElement("models");
+    parseModelFiles(modelsElement, settings->modelFiles);
+
+    return settings;
 }
