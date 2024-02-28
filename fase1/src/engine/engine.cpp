@@ -201,7 +201,7 @@ void keyProc(unsigned char key, int x, int y) {
 
 int main(int argc, char *argv[]) {
 
-	std::string filePath = "config.xml";
+	std::string filePath = "example.xml";
 	ParserSettings* settings = ParserSettingsConstructor(filePath);
 	camx    = settings->camera.positionX;
 	camy    = settings->camera.positionY;
@@ -222,7 +222,25 @@ int main(int argc, char *argv[]) {
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius);
 
+	printf("camx: %f\n", camx);
+	printf("camy: %f\n", camy);
+	printf("camz: %f\n", camz);
+	printf("lookAtx: %f\n", lookAtx);
+	printf("lookAty: %f\n", lookAty);
+	printf("lookAtz: %f\n", lookAtz);
+	printf("upx: %f\n", upx);
+	printf("upy: %f\n", upy);
+	printf("upz: %f\n", upz);
+	printf("fov: %f\n", fov);
+	printf("near: %f\n", near);
+	printf("far: %f\n", far);
+	printf("width: %d\n", width);
+	printf("height: %d\n", height);
+	printf("fileName: %s\n", fileName.c_str());
 
+	
+
+	/*
 	// init GLUT and the window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA);
@@ -249,4 +267,5 @@ int main(int argc, char *argv[]) {
 	
 	deepDeleteList(figuras,deleteFigura);
 	return 1;
+	*/
 }
