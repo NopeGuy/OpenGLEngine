@@ -11,12 +11,11 @@
 #include "../utils/ponto.hpp"
 #include "../utils/list.hpp"
 #include "../tinyXML/tinyxml2.h"
-#include "parser.cpp"
-#include "parser.hpp"
+#include "../utils/parser.hpp"
 
 using namespace std;
 
-// Defines de cores
+// Códigos de cores
 #define RED 1.0f,0.0f,0.0f
 #define GREEN 0.0f,1.0f,0.0f
 #define BLUE 0.0f,0.0f,1.0f
@@ -37,11 +36,23 @@ float lookAtz = 0.0f;
 float upx = 0.0f;
 float upy = 0.0f;
 float upz = 0.0f;
+float fov = 0.0f;
+float near = 0.0f;
+float far = 0.0f;
+
+
+// Window Settings
+int width = 0;
+int height = 0;
+
+// File Settings
+std::string fileName = "";
 
 int mode = GL_LINE;
 
-Parser parser = NULL;
 List figuras = NULL;
+
+
 
 void changeSize(int w, int h) {
 
@@ -50,21 +61,21 @@ void changeSize(int w, int h) {
 	if(h == 0)
 		h = 1;
 
-	// cálculo do aspect ratio 
+	// compute window's aspect ratio 
 	float ratio = w * 1.0 / h;
 
-	// Define a matriz de projeção como atual
+	// Set the projection matrix as current
 	glMatrixMode(GL_PROJECTION);
-	// Carrega a Matriz Identidade
+	// Load Identity Matrix
 	glLoadIdentity();
 	
-	// Define a área de visualização como a janela inteira
+	// Set the viewport to be the entire window
     glViewport(0, 0, w, h);
 
-	// Define a perspetiva
+	// Set perspective
 	gluPerspective(45.0f ,ratio, 1.0f ,1000.0f);
 
-	// Retorna ao modo de matriz de visualização de modelo
+	// return to the model view matrix mode
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -84,29 +95,33 @@ void renderScene(void) {
 	// clear buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Definir câmara
+	// set the camera
 	glLoadIdentity();
 	gluLookAt(radius*cos(beta_)*sin(alpha), radius*sin(beta_), radius*cos(beta_)*cos(alpha),
 		      lookAtx,lookAty,lookAtz,
 			  upx,upy,upz);
 
-	// Eixos (Depois esconder se preciso)
+	// put drawing instructions here
+	// linhas dos eixos
 	glBegin(GL_LINES);
-		// Eixo X
+		// X axis in red
 		glColor3f(1.0f, 0.0f, 0.0f);
 		glVertex3f(-100.0f, 0.0f, 0.0f);
 		glVertex3f( 100.0f, 0.0f, 0.0f);
-		// Eixo Y
+		// Y Axis in Green
 		glColor3f(0.0f, 1.0f, 0.0f);
 		glVertex3f(0.0f,-100.0f, 0.0f);
 		glVertex3f(0.0f, 100.0f, 0.0f);
-		// Eixo Z
+		// Z Axis in Blue
 		glColor3f(0.0f, 0.0f, 1.0f);
 		glVertex3f(0.0f, 0.0f,-100.0f);
 		glVertex3f(0.0f, 0.0f, 100.0f);
 	glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
+	// put the geometric transformations here
+	// ...
+	//
 
 	// figuras
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
@@ -114,11 +129,15 @@ void renderScene(void) {
 	drawFiguras(figuras);
     glEnd();
 	
+	// End of frame
 	glutSwapBuffers();
 }
 
+// write function to process keyboard events
 
+// Só altera a posição da camera, para debug.
 void specKeyProc(int key_code, int x, int y) {
+	x = y; y=x; // Para não aparecerem os warnings.
 	switch (key_code){
 		case GLUT_KEY_UP:{
 			radius -= 0.1f;
@@ -136,25 +155,27 @@ void specKeyProc(int key_code, int x, int y) {
 	glutPostRedisplay();
 }
 
+// Só altera a posição da camera, para debug, e altera os modes para GL_FILL, GL_LINES, GL_POINT
 void keyProc(unsigned char key, int x, int y) {
+	x = y; y=x; // Para não aparecerem os warnings.
 	switch (key)
 	{
-		case 'a': { // esquerda
+		case 'a': { // left
 			alpha -= 0.1f;
 			break;
 		}
 
-		case 'd': { // direita
+		case 'd': { // right
 			alpha += 0.1f;
 			break;
 		}
 
-		case 'w': { // cima 
+		case 'w': { // up 
 			beta_ += beta_ <= 1.48f ? 0.1f : 0.0f;
 			break;
 		}
 
-		case 's': { // baixo
+		case 's': { // down
 			beta_ -= beta_ >= -1.48f ? 0.1f : 0.0f;
 			break;
 		}
@@ -179,41 +200,68 @@ void keyProc(unsigned char key, int x, int y) {
 
 
 int main(int argc, char *argv[]) {
-
-	Parser parser = newParser();
-	// Carregar os dados das figuras
-	parser = xmlToConfig(argv[1]); 
-	List models   = getModels(parser);
-	figuras 	  = newEmptyList();
-	for(unsigned int i = 0; i < getListLength(models); i++){
-		addValueList(figuras, fileToFigura((char*)getListElemAt(models,i)));
+	if (argc != 2) {
+		printf("Usage: %s <path to xml file>\n", argv[0]);
+		return 1;
 	}
-	// Carregamento dos dados da câmara
-	camx    = getXPosCam(configuration);
-	camy    = getYPosCam(configuration);
-	camz    = getZPosCam(configuration);
-	radius  = sqrt(camx*camx + camy*camy + camz*camz);
-	lookAtx = getXLookAt(configuration);
-	lookAty = getYLookAt(configuration);
-	lookAtz = getZLookAt(configuration);
-	upx 	= getXUp(configuration);
-	upy 	= getYUp(configuration);
-	upz 	= getZUp(configuration);
-	alpha = acos(camz/sqrt(camx*camx + camz*camz));
-	beta_ = asin(camy/radius);
+	std::string filePath = argv[1];
+	ParserSettings* settings = ParserSettingsConstructor(filePath);
+	camx    = settings->camera.positionX;
+	camy    = settings->camera.positionY;
+	camz    = settings->camera.positionZ;
+	lookAtx = settings->camera.lookAtX;
+	lookAty = settings->camera.lookAtY;
+	lookAtz = settings->camera.lookAtZ;
+	upx 	= settings->camera.upX;
+	upy 	= settings->camera.upY;
+	upz 	= settings->camera.upZ;
+	fov     = settings->camera.fov;
+	near    = settings->camera.near;
+	far     = settings->camera.far;
+	width	= settings->window.width;
+	height	= settings->window.height;
+	fileName = settings->modelFiles[0].fileName;
+	radius	= sqrt(camx * camx + camy * camy + camz * camz);
+	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
+	beta_   = asin(camy/radius);
 
+	// adiciona as figuras à lista
+	//List figuras = 
+
+
+	/*
+	printf("camx: %f\n", camx);
+	printf("camy: %f\n", camy);
+	printf("camz: %f\n", camz);
+	printf("lookAtx: %f\n", lookAtx);
+	printf("lookAty: %f\n", lookAty);
+	printf("lookAtz: %f\n", lookAtz);
+	printf("upx: %f\n", upx);
+	printf("upy: %f\n", upy);
+	printf("upz: %f\n", upz);
+	printf("fov: %f\n", fov);
+	printf("near: %f\n", near);
+	printf("far: %f\n", far);
+	printf("width: %d\n", width);
+	printf("height: %d\n", height);
+	printf("fileName: %s\n", fileName.c_str());
+	*/
+	
+
+	
+	// init GLUT and the window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA);
 	glutInitWindowPosition(100,100);
-	glutInitWindowSize(1200,980);
-	glutCreateWindow("3D Engine");
+	glutInitWindowSize(800,800);
+	glutCreateWindow("Fase 1");
 		
-
+	// Required callback registry 
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
 
 	
-	// Depois tirar
+	// put here the registration of the keyboard callbacks (por enquanto só mexem na camara como forma de debug)
 	glutKeyboardFunc(keyProc);
 	glutSpecialFunc(specKeyProc);
 
@@ -222,7 +270,7 @@ int main(int argc, char *argv[]) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	
-	// GLUT's main cycle
+	// enter GLUT's main cycle
 	glutMainLoop();
 	
 	deepDeleteList(figuras,deleteFigura);
