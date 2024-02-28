@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "tinyxml/tinyxml2.h"
+#include "../tinyXML/tinyxml2.h"
 
 struct WindowSettings {
     int width, height;
