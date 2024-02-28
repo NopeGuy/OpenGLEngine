@@ -7,8 +7,8 @@
         <projection fov="60" near="1" far="3.5" /> 
     </camera>
 	<group> 
-  		<models> 
-            <model file="..\output\sphere_1_10_10.3d" /> 
+  		<models>
+			<model file="..\output\sphere_1_10_10.3d" />
  		</models>
  	</group>
 </world>
