@@ -10,7 +10,7 @@
 #endif
 #include <filesystem>
 #include <cmath>
-#include <corecrt_math_defines.h>
+#define M_PI        3.14159265358979323846264338327950288   /* pi             */
 
 namespace fs = std::filesystem;
 
