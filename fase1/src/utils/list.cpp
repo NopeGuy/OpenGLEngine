@@ -1,16 +1,16 @@
 #include "list.hpp"
 
 struct list{
-    void** arr;// é um void** porque é um array de apontadores e não um array de tipos concretos
-    unsigned long length; // espaços ocupados do array
-    unsigned long capacity; // tamanho total do array
+    void** arr;
+    unsigned long length;
+    unsigned long capacity;
 };
 
 List newEmptyList(){
     List newL = (List)malloc(sizeof(struct list));
-    if(newL){ // não ocorreu erros a criar o newL
+    if(newL){
         newL->arr = (void**)calloc(STDSIZE, sizeof(void*));
-        if(newL->arr){ // não ocorreu erros a criar o newL->arr
+        if(newL->arr){
             newL->length = 0;
             newL->capacity = STDSIZE;
         }else{
@@ -30,7 +30,7 @@ int listIsFull(List list){
 
 void addValueList(List list, void* value){
     if(list){
-        if(listIsFull(list)){// a lista está cheia -> temos de aumentar o espaço disponível
+        if(listIsFull(list)){
             list->capacity += STDSIZE;
             list->arr = (void**)realloc(list->arr,sizeof(void*)*list->capacity);
         }

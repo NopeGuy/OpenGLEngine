@@ -15,14 +15,6 @@
 
 using namespace std;
 
-// Códigos de cores
-#define RED 1.0f,0.0f,0.0f
-#define GREEN 0.0f,1.0f,0.0f
-#define BLUE 0.0f,0.0f,1.0f
-#define YELLOW 1.0f, 1.0f, 0.0f
-#define CYAN 0.0f, 1.0f, 1.0f
-#define WHITE 1.0f, 1.0f, 1.0f
-
 // Variáveis da câmara
 float alpha = M_PI / 4;
 float beta_ = M_PI / 4;
