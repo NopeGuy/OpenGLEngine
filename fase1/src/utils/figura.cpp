@@ -69,7 +69,6 @@ Figura fileToFigura(const char* path) {
         for (int i = 0; i < vertices; i++) {
             fgets(buffer, 1023, file);
             sscanf(buffer, "%f,%f,%f", &x, &y, &z);
-            printf("Lido: %f %f %f\n", x, y, z);
             addPonto(f, newPonto(x, y, z));
         }
         fclose(file);

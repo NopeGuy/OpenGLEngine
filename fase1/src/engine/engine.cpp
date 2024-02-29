@@ -86,7 +86,6 @@ void drawFiguras(List figs){
 		for(unsigned long j = 0; j < getListLength(figPontos); j++){
 			Ponto point = (Ponto)getListElemAt(figPontos,j);
 			glVertex3f(getX(point), getY(point), getZ(point));
-			printf("Ponto: %f %f %f\n", getX(point), getY(point), getZ(point));
 		}
 	}
 }
@@ -227,8 +226,8 @@ int main(int argc, char *argv[]) {
 	radius	= sqrt(camx * camx + camy * camy + camz * camz);
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius); 
-	const char* fileChar = fileName.c_str();
 
+	const char* fileChar = fileName.c_str();
 	addValueList(figuras, fileToFigura(fileChar));
 
 
