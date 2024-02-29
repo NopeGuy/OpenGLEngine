@@ -57,23 +57,26 @@ void figuraToFile(Figura f, const char* path){
     fclose(file);
 }
 
-Figura fileToFigura(const char* path){
+Figura fileToFigura(const char* path) {
+    printf("A abrir o ficheiro '%s'\n", path);
     Figura f = newEmptyFigura();
     FILE* file = fopen(path, "r");
-    if(f && file){
+    if (f && file) {
         char buffer[1024];
         fgets(buffer, 1023, file);
         int vertices = atoi(buffer);
         float x, y, z;
-        for(int i = 0; i < vertices; i++){
+        for (int i = 0; i < vertices; i++) {
             fgets(buffer, 1023, file);
             sscanf(buffer, "%f,%f,%f", &x, &y, &z);
+            printf("Lido: %f %f %f\n", x, y, z);
             addPonto(f, newPonto(x, y, z));
         }
         fclose(file);
     }
     return f;
 }
+
 
 List getPontos(Figura f){
     if(f){

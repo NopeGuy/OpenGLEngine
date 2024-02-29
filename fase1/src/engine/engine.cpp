@@ -86,6 +86,7 @@ void drawFiguras(List figs){
 		for(unsigned long j = 0; j < getListLength(figPontos); j++){
 			Ponto point = (Ponto)getListElemAt(figPontos,j);
 			glVertex3f(getX(point), getY(point), getZ(point));
+			printf("Ponto: %f %f %f\n", getX(point), getY(point), getZ(point));
 		}
 	}
 }
@@ -204,7 +205,9 @@ int main(int argc, char *argv[]) {
 		printf("Usage: %s <path to xml file>\n", argv[0]);
 		return 1;
 	}
-	std::string filePath = argv[1];
+	std::string filePath = argv[1];	
+	printf("File path: %s\n", filePath.c_str());
+	figuras = newEmptyList();
 	ParserSettings* settings = ParserSettingsConstructor(filePath);
 	camx    = settings->camera.positionX;
 	camy    = settings->camera.positionY;
@@ -223,13 +226,14 @@ int main(int argc, char *argv[]) {
 	fileName = settings->modelFiles[0].fileName;
 	radius	= sqrt(camx * camx + camy * camy + camz * camz);
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
-	beta_   = asin(camy/radius);
+	beta_   = asin(camy/radius); 
+	const char* fileChar = fileName.c_str();
 
-	// adiciona as figuras à lista
-	//List figuras = 
+	addValueList(figuras, fileToFigura(fileChar));
 
 
-	/*
+
+
 	printf("camx: %f\n", camx);
 	printf("camy: %f\n", camy);
 	printf("camz: %f\n", camz);
@@ -245,8 +249,6 @@ int main(int argc, char *argv[]) {
 	printf("width: %d\n", width);
 	printf("height: %d\n", height);
 	printf("fileName: %s\n", fileName.c_str());
-	*/
-	
 
 	
 	// init GLUT and the window
@@ -254,7 +256,7 @@ int main(int argc, char *argv[]) {
 	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA);
 	glutInitWindowPosition(100,100);
 	glutInitWindowSize(800,800);
-	glutCreateWindow("Fase 1");
+	glutCreateWindow("Engine");
 		
 	// Required callback registry 
 	glutDisplayFunc(renderScene);
