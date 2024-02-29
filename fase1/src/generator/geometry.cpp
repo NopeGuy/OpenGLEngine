@@ -18,7 +18,7 @@
 namespace fs = std::filesystem;
 
 void generateSphere(float radius, int slices, int stacks, const std::string& filename) {
-    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
+    fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
@@ -62,8 +62,8 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
             file << x2 << "," << y2 << "," << z2 << " ; ";
             file << x3 << "," << y3 << "," << z3 << std::endl;
 
-            file << x3 << "," << y3 << "," << z3 << " ; ";
             file << x2 << "," << y2 << "," << z2 << " ; ";
+            file << x3 << "," << y3 << "," << z3 << " ; ";
             file << x4 << "," << y4 << "," << z4 << std::endl;
         }
     }
