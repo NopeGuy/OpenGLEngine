@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#include "../utils/ponto.hpp"
+
 struct Vertex {
     float x, y, z;
 };

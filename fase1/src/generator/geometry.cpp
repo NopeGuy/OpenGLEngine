@@ -10,40 +10,61 @@
 #endif
 #include <filesystem>
 #include <cmath>
-#define M_PI        3.14159265358979323846264338327950288   /* pi             */
+#include <corecrt_math_defines.h>
+
+#include "../utils/ponto.hpp"
+#include <fstream>
 
 namespace fs = std::filesystem;
 
 void generateSphere(float radius, int slices, int stacks, const std::string& filename) {
-    fs::path outputPath = fs::current_path().parent_path() / "output";
+    fs::path outputPath = fs::current_path().parent_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
 
     fs::path filePath = outputPath / filename;
-
     std::ofstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita: " << filePath << std::endl;
         return;
     }
 
-    // ângulo de cada fatia e pilha
+    int totalVertices = 2 * 3 * slices * stacks;
+    file << totalVertices << std::endl;
+
     float deltaPhi = M_PI / stacks;
     float deltaTheta = 2 * M_PI / slices;
 
-    for (int i = 0; i <= stacks; ++i) {
+    for (int i = 0; i < stacks; ++i) {
         float phi = i * deltaPhi;
         for (int j = 0; j < slices; ++j) {
             float theta = j * deltaTheta;
 
-            // Coordenadas esféricas para coordenadas cartesianas
-            float x = radius * sinf(phi) * cosf(theta);
-            float y = radius * sinf(phi) * sinf(theta);
-            float z = radius * cosf(phi);
+            // Coordenadas dos quatro pontos
+            float x1 = radius * sinf(phi) * cosf(theta);
+            float y1 = radius * sinf(phi) * sinf(theta);
+            float z1 = radius * cosf(phi);
 
-            // Escreve as coordenadas no arquivo
-            file << x << " " << y << " " << z << std::endl;
+            float x2 = radius * sinf(phi + deltaPhi) * cosf(theta);
+            float y2 = radius * sinf(phi + deltaPhi) * sinf(theta);
+            float z2 = radius * cosf(phi + deltaPhi);
+
+            float x3 = radius * sinf(phi) * cosf(theta + deltaTheta);
+            float y3 = radius * sinf(phi) * sinf(theta + deltaTheta);
+            float z3 = radius * cosf(phi);
+
+            float x4 = radius * sinf(phi + deltaPhi) * cosf(theta + deltaTheta);
+            float y4 = radius * sinf(phi + deltaPhi) * sinf(theta + deltaTheta);
+            float z4 = radius * cosf(phi + deltaPhi);
+
+            file << x1 << "," << y1 << "," << z1 << " ; ";
+            file << x2 << "," << y2 << "," << z2 << " ; ";
+            file << x3 << "," << y3 << "," << z3 << std::endl;
+
+            file << x3 << "," << y3 << "," << z3 << " ; ";
+            file << x2 << "," << y2 << "," << z2 << " ; ";
+            file << x4 << "," << y4 << "," << z4 << std::endl;
         }
     }
 
@@ -52,7 +73,8 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
 }
 
 
-void generateBox(float size, int divisions, const std::string& filename){
+
+void generateBox(float size, int divisions, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
@@ -74,12 +96,12 @@ void generateBox(float size, int divisions, const std::string& filename){
         // Determina a orientação da face
         float nx = 0, ny = 0, nz = 0;
         switch (i) {
-            case 0: ny = 1; break; // Topo
-            case 1: ny = -1; break; // Base
-            case 2: nz = 1; break; // Frente
-            case 3: nz = -1; break; // Atrás
-            case 4: nx = 1; break; // Direita
-            case 5: nx = -1; break; // Esquerda
+        case 0: ny = 1; break; // Topo
+        case 1: ny = -1; break; // Base
+        case 2: nz = 1; break; // Frente
+        case 3: nz = -1; break; // Atrás
+        case 4: nx = 1; break; // Direita
+        case 5: nx = -1; break; // Esquerda
         }
 
         // Itera por cada divisão da face
@@ -104,7 +126,7 @@ void generateBox(float size, int divisions, const std::string& filename){
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
 
-void generatePlane(float size, int divisions, const std::string& filename){
+void generatePlane(float size, int divisions, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
@@ -145,7 +167,7 @@ void generatePlane(float size, int divisions, const std::string& filename){
 }
 
 
-void generateCone(float radius, float height, int slices, int stacks, const std::string& filename){
+void generateCone(float radius, float height, int slices, int stacks, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
@@ -180,7 +202,7 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         for (int j = 0; j < stacks; ++j) {
             float angle = i * deltaAngle;
             float nextAngle = (i + 1) * deltaAngle;
-            
+
             // Calcula os raios e alturas para os vértices
             float lowerRadius = radius * (stacks - j) / stacks;
             float upperRadius = radius * (stacks - j - 1) / stacks;
