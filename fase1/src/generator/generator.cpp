@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         float size = std::stof(argv[2]);
         int divisions = std::stoi(argv[3]);
         std::string outputFile = argv[4];
-        generateBox(size, divisions, outputFile);
+        generatePlane(size, divisions, outputFile);
         return 0;    
     } else if(object == "cone"){
         if (argc != 7) {

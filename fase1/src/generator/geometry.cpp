@@ -58,20 +58,19 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
             float y4 = radius * sinf(phi + deltaPhi) * sinf(theta + deltaTheta);
             float z4 = radius * cosf(phi + deltaPhi);
 
+            file << x3 << "," << y3 << "," << z3 << " ; ";
             file << x1 << "," << y1 << "," << z1 << " ; ";
-            file << x2 << "," << y2 << "," << z2 << " ; ";
-            file << x3 << "," << y3 << "," << z3 << std::endl;
+            file << x4 << "," << y4 << "," << z4 << std::endl;
 
             file << x2 << "," << y2 << "," << z2 << " ; ";
-            file << x3 << "," << y3 << "," << z3 << " ; ";
-            file << x4 << "," << y4 << "," << z4 << std::endl;
+            file << x1 << "," << y1 << "," << z1 << " ; ";
+            file << x3 << "," << y3 << "," << z3 << std::endl;
         }
     }
 
     file.close();
     std::cout << "Arquivo '" << filePath << "' criado com sucesso." << std::endl;
 }
-
 
 
 void generateBox(float size, int divisions, const std::string& filename) {
@@ -140,25 +139,29 @@ void generatePlane(float size, int divisions, const std::string& filename) {
         return;
     }
 
-    float step = size / divisions; // Distância entre cada divisão
-    float half = size / 2;         // Metade do tamanho do plano para centralizá-lo na origem
+    float step = size / divisions;
+    float half = size / 2.0f;
+    int totalVertices = divisions * divisions * 6;  // Cada quadrado é dividido em 2 triângulos, 3 vértices por triângulo
 
-    // Geração de vértices para cada divisão do plano
+    // Escrevendo o número total de vértices no arquivo
+    file << totalVertices << std::endl;
+
+    // Geração de vértices para cada divisão do plano e escrita direta no arquivo
     for (int i = 0; i < divisions; ++i) {
         for (int j = 0; j < divisions; ++j) {
-            // Coordenadas do vértice inferior esquerdo de um quadrado do grid
             float x = (i * step) - half;
             float z = (j * step) - half;
 
+            // Ajustando a ordem dos vértices para que as normais apontem para cima
             // Primeiro triângulo do quadrado
-            file << x << " 0 " << z << "\n";                  // Inferior esquerdo
-            file << x + step << " 0 " << z << "\n";          // Inferior direito
-            file << x << " 0 " << z + step << "\n";          // Superior esquerdo
+            file << x << ", 0, " << z + step << std::endl;          // Superior esquerdo
+            file << x + step << ", 0, " << z << std::endl;          // Inferior direito
+            file << x << ", 0, " << z << std::endl;                 // Inferior esquerdo
 
             // Segundo triângulo do quadrado
-            file << x + step << " 0 " << z << "\n";          // Inferior direito
-            file << x + step << " 0 " << z + step << "\n";   // Superior direito
-            file << x << " 0 " << z + step << "\n";          // Superior esquerdo
+            file << x << ", 0, " << z + step << std::endl;          // Superior esquerdo
+            file << x + step << ", 0, " << z + step << std::endl;   // Superior direito
+            file << x + step << ", 0, " << z << std::endl;          // Inferior direito
         }
     }
 
