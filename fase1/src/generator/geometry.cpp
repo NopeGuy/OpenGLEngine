@@ -30,41 +30,46 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
         return;
     }
 
-    int totalVertices = 2 * 3 * slices * stacks;
+    int totalVertices = 2 * 3 * slices * stacks; // Cada quadrado na esfera é dividido em 2 triângulos, 3 vértices por triângulo
     file << totalVertices << std::endl;
 
-    float deltaPhi = M_PI / stacks;
-    float deltaTheta = 2 * M_PI / slices;
+    float deltaPhi = M_PI / stacks; // Intervalo de variação para phi (de 0 a PI)
+    float deltaTheta = 2 * M_PI / slices; // Intervalo de variação para theta (de 0 a 2*PI)
 
     for (int i = 0; i < stacks; ++i) {
         float phi = i * deltaPhi;
+        float nextPhi = (i + 1) * deltaPhi;
+
         for (int j = 0; j < slices; ++j) {
             float theta = j * deltaTheta;
+            float nextTheta = (j + 1) * deltaTheta;
 
-            // Coordenadas dos quatro pontos
+            // Coordenadas dos vértices do quadrado atual
             float x1 = radius * sinf(phi) * cosf(theta);
-            float y1 = radius * sinf(phi) * sinf(theta);
-            float z1 = radius * cosf(phi);
+            float y1 = radius * cosf(phi);
+            float z1 = radius * sinf(phi) * sinf(theta);
 
-            float x2 = radius * sinf(phi + deltaPhi) * cosf(theta);
-            float y2 = radius * sinf(phi + deltaPhi) * sinf(theta);
-            float z2 = radius * cosf(phi + deltaPhi);
+            float x2 = radius * sinf(nextPhi) * cosf(theta);
+            float y2 = radius * cosf(nextPhi);
+            float z2 = radius * sinf(nextPhi) * sinf(theta);
 
-            float x3 = radius * sinf(phi) * cosf(theta + deltaTheta);
-            float y3 = radius * sinf(phi) * sinf(theta + deltaTheta);
-            float z3 = radius * cosf(phi);
+            float x3 = radius * sinf(phi) * cosf(nextTheta);
+            float y3 = radius * cosf(phi);
+            float z3 = radius * sinf(phi) * sinf(nextTheta);
 
-            float x4 = radius * sinf(phi + deltaPhi) * cosf(theta + deltaTheta);
-            float y4 = radius * sinf(phi + deltaPhi) * sinf(theta + deltaTheta);
-            float z4 = radius * cosf(phi + deltaPhi);
+            float x4 = radius * sinf(nextPhi) * cosf(nextTheta);
+            float y4 = radius * cosf(nextPhi);
+            float z4 = radius * sinf(nextPhi) * sinf(nextTheta);
 
-            file << x3 << "," << y3 << "," << z3 << " ; ";
-            file << x1 << "," << y1 << "," << z1 << " ; ";
-            file << x4 << "," << y4 << "," << z4 << std::endl;
+            // Primeiro triângulo
+            file << x1 << "," << y1 << "," << z1 << "\n";
+            file << x2 << "," << y2 << "," << z2 << "\n";
+            file << x4 << "," << y4 << "," << z4 << "\n";
 
-            file << x2 << "," << y2 << "," << z2 << " ; ";
-            file << x1 << "," << y1 << "," << z1 << " ; ";
-            file << x3 << "," << y3 << "," << z3 << std::endl;
+            // Segundo triângulo
+            file << x4 << "," << y4 << "," << z4 << "\n";
+            file << x3 << "," << y3 << "," << z3 << "\n";
+            file << x1 << "," << y1 << "," << z1 << "\n";
         }
     }
 
@@ -184,6 +189,11 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         return;
     }
 
+    // Calculando o número total de vértices
+    // Cada slice da base gera 3 vértices e cada stack de cada slice gera 6 vértices
+    int totalVertices = slices * 3 + slices * stacks * 6;
+    file << totalVertices << std::endl;
+
     // Ângulo entre cada slice
     float deltaAngle = 2 * M_PI / slices;
     // Diferença de altura entre cada stack
@@ -195,32 +205,27 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         float nextAngle = (i + 1) * deltaAngle;
 
         // Vértices da base (0, 0, 0) e dois pontos na borda
-        file << "0 0 0\n"; // Centro da base
-        file << radius * cos(nextAngle) << " " << radius * sin(nextAngle) << " 0\n"; // Próximo ponto na borda
-        file << radius * cos(angle) << " " << radius * sin(angle) << " 0\n"; // Ponto atual na borda
+        file << "0, 0, 0\n"; // Centro da base
+        file << radius * cos(nextAngle) << ", 0, " << radius * sin(nextAngle) << "\n"; // Próximo ponto na borda
+        file << radius * cos(angle) << ", 0, " << radius * sin(angle) << "\n"; // Ponto atual na borda
     }
 
     // Gerar os lados do cone
     for (int i = 0; i < slices; ++i) {
-        for (int j = 0; j < stacks; ++j) {
-            float angle = i * deltaAngle;
-            float nextAngle = (i + 1) * deltaAngle;
+        float angle = i * deltaAngle;
+        float nextAngle = (i + 1) * deltaAngle;
 
-            // Calcula os raios e alturas para os vértices
-            float lowerRadius = radius * (stacks - j) / stacks;
-            float upperRadius = radius * (stacks - j - 1) / stacks;
-            float lowerHeight = j * deltaHeight;
-            float upperHeight = (j + 1) * deltaHeight;
+        // Topo do cone
+        float tipX = 0, tipY = height, tipZ = 0; // Vértice do topo do cone
 
-            // Quatro vértices do trapézio (dois inferiores, dois superiores)
-            file << lowerRadius * cos(angle) << " " << lowerRadius * sin(angle) << " " << lowerHeight << "\n"; // Inferior atual
-            file << upperRadius * cos(angle) << " " << upperRadius * sin(angle) << " " << upperHeight << "\n"; // Superior atual
-            file << upperRadius * cos(nextAngle) << " " << upperRadius * sin(nextAngle) << " " << upperHeight << "\n"; // Superior próximo
+        // Base do cone
+        float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle); // Ponto atual na borda da base
+        float baseX2 = radius * cos(nextAngle), baseZ2 = radius * sin(nextAngle); // Próximo ponto na borda da base
 
-            file << upperRadius * cos(nextAngle) << " " << upperRadius * sin(nextAngle) << " " << upperHeight << "\n"; // Superior próximo
-            file << lowerRadius * cos(nextAngle) << " " << lowerRadius * sin(nextAngle) << " " << lowerHeight << "\n"; // Inferior próximo
-            file << lowerRadius * cos(angle) << " " << lowerRadius * sin(angle) << " " << lowerHeight << "\n"; // Inferior atual
-        }
+        // Triângulo que liga a base ao topo
+        file << tipX << ", " << tipY << ", " << tipZ << "\n"; // Topo
+        file << baseX2 << ", 0, " << baseZ2 << "\n"; // Próximo ponto na borda da base
+        file << baseX1 << ", 0, " << baseZ1 << "\n"; // Ponto atual na borda da base
     }
 
     file.close();

@@ -8,7 +8,7 @@
     </camera>
 	<group> 
   		<models>
-			<model file="..\output\ligma.3d" />
+			<model file="..\output\sphere.3d" />
  		</models>
  	</group>
 </world>
