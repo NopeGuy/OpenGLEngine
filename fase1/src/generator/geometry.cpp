@@ -77,7 +77,6 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
     std::cout << "Arquivo '" << filePath << "' criado com sucesso." << std::endl;
 }
 
-
 void generateBox(float size, int divisions, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
@@ -85,47 +84,55 @@ void generateBox(float size, int divisions, const std::string& filename) {
     }
 
     fs::path filePath = outputPath / filename;
-
     std::ofstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
     }
 
-    float step = size / divisions; // Distância entre cada divisão
-    float half = size / 2; // Metade do tamanho do cubo para centralizá-lo na origem
+    float step = size / divisions;
+    float half = size / 2;
+    int totalVertices = 6 * 2 * divisions * divisions * 3;
+    file << totalVertices << std::endl;
 
-    // Itera por cada face do cubo
-    for (int i = 0; i < 6; i++) {
-        // Determina a orientação da face
-        float nx = 0, ny = 0, nz = 0;
-        switch (i) {
-        case 0: ny = 1; break; // Topo
-        case 1: ny = -1; break; // Base
-        case 2: nz = 1; break; // Frente
-        case 3: nz = -1; break; // Atrás
-        case 4: nx = 1; break; // Direita
-        case 5: nx = -1; break; // Esquerda
-        }
+    // Função de vértices (para ser mais legivel)
+    auto writeVertex = [&](float x, float y, float z) {
+        file << x << "," << y << "," << z << std::endl;
+        };
 
-        // Itera por cada divisão da face
-        for (int y = 0; y < divisions; y++) {
-            for (int x = 0; x < divisions; x++) {
-                // Calcula as coordenadas dos quatro vértices do quadrado atual
-                for (int corner = 0; corner < 4; corner++) {
-                    float dx = (corner == 0 || corner == 3) ? 0 : step;
-                    float dy = (corner < 2) ? 0 : step;
-                    float vx = nx * half + (nx == 0 ? (x * step - half + dx) : 0);
-                    float vy = ny * half + (ny == 0 ? (y * step - half + dy) : 0);
-                    float vz = nz * half + (nz == 0 ? (x * step - half + dx) : 0);
+    // Faces do cubo
+    for (int i = 0; i < divisions; ++i) {
+        float y = -half + i * step;
+        float yNext = y + step;
+        for (int j = 0; j < divisions; ++j) {
+            float x = -half + j * step;
+            float xNext = x + step;
 
-                    // Escreve as coordenadas do vértice no arquivo
-                    file << "v " << vx << " " << vy << " " << vz << std::endl;
-                }
-            }
+            // Topo (y = half)
+            writeVertex(x, half, y); writeVertex(x, half, yNext); writeVertex(xNext, half, y);
+            writeVertex(xNext, half, y); writeVertex(x, half, yNext); writeVertex(xNext, half, yNext);
+
+            // Base (y = -half)
+            writeVertex(x, -half, y); writeVertex(xNext, -half, y); writeVertex(x, -half, yNext);
+            writeVertex(xNext, -half, y); writeVertex(xNext, -half, yNext); writeVertex(x, -half, yNext);
+
+            // Frente (z = half)
+            writeVertex(x, y, half); writeVertex(xNext, y, half); writeVertex(x, yNext, half);
+            writeVertex(xNext, y, half); writeVertex(xNext, yNext, half); writeVertex(x, yNext, half);
+
+            // Trás (z = -half)
+            writeVertex(x, y, -half); writeVertex(x, yNext, -half); writeVertex(xNext, y, -half);
+            writeVertex(xNext, y, -half); writeVertex(x, yNext, -half); writeVertex(xNext, yNext, -half);
+
+            // Direita (x = half)
+            writeVertex(half, y, x); writeVertex(half, yNext, x); writeVertex(half, y, xNext);
+            writeVertex(half, y, xNext); writeVertex(half, yNext, x); writeVertex(half, yNext, xNext);
+
+            // Esquerda (x = -half)
+            writeVertex(-half, y, x); writeVertex(-half, y, xNext); writeVertex(-half, yNext, x);
+            writeVertex(-half, y, xNext); writeVertex(-half, yNext, xNext); writeVertex(-half, yNext, x);
         }
     }
-
     file.close();
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
