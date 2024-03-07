@@ -17,18 +17,15 @@
 
 namespace fs = std::filesystem;
 
-void generateSphere(float radius, int slices, int stacks, const std::string &filename)
-{
+void generateSphere(float radius, int slices, int stacks, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
-    if (!fs::exists(outputPath))
-    {
+    if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
 
     fs::path filePath = outputPath / filename;
     std::ofstream file(filePath);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita: " << filePath << std::endl;
         return;
     }
@@ -36,16 +33,14 @@ void generateSphere(float radius, int slices, int stacks, const std::string &fil
     int totalVertices = 2 * 3 * slices * stacks; // Cada quadrado na esfera é dividido em 2 triângulos, 3 vértices por triângulo
     file << totalVertices << std::endl;
 
-    float deltaPhi = M_PI / stacks;       // Intervalo de variação para phi (de 0 a PI)
+    float deltaPhi = M_PI / stacks; // Intervalo de variação para phi (de 0 a PI)
     float deltaTheta = 2 * M_PI / slices; // Intervalo de variação para theta (de 0 a 2*PI)
 
-    for (int i = 0; i < stacks; ++i)
-    {
+    for (int i = 0; i < stacks; ++i) {
         float phi = i * deltaPhi;
         float nextPhi = (i + 1) * deltaPhi;
 
-        for (int j = 0; j < slices; ++j)
-        {
+        for (int j = 0; j < slices; ++j) {
             float theta = j * deltaTheta;
             float nextTheta = (j + 1) * deltaTheta;
 
@@ -82,18 +77,15 @@ void generateSphere(float radius, int slices, int stacks, const std::string &fil
     std::cout << "Arquivo '" << filePath << "' criado com sucesso." << std::endl;
 }
 
-void generateBox(float size, int divisions, const std::string &filename)
-{
+void generateBox(float size, int divisions, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
-    if (!fs::exists(outputPath))
-    {
+    if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
 
     fs::path filePath = outputPath / filename;
     std::ofstream file(filePath);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
     }
@@ -104,116 +96,84 @@ void generateBox(float size, int divisions, const std::string &filename)
     file << totalVertices << std::endl;
 
     // Função de vértices (para ser mais legivel)
-    auto writeVertex = [&](float x, float y, float z)
-    {
+    auto writeVertex = [&](float x, float y, float z) {
         file << x << "," << y << "," << z << std::endl;
-    };
+        };
 
     // Faces do cubo
-    for (int i = 0; i < divisions; ++i)
-    {
+    for (int i = 0; i < divisions; ++i) {
         float y = -half + i * step;
         float yNext = y + step;
-        for (int j = 0; j < divisions; ++j)
-        {
+        for (int j = 0; j < divisions; ++j) {
             float x = -half + j * step;
             float xNext = x + step;
 
             // Topo (y = half)
-            writeVertex(x, half, y);
-            writeVertex(x, half, yNext);
-            writeVertex(xNext, half, y);
-            writeVertex(xNext, half, y);
-            writeVertex(x, half, yNext);
-            writeVertex(xNext, half, yNext);
+            writeVertex(x, half, y); writeVertex(x, half, yNext); writeVertex(xNext, half, y);
+            writeVertex(xNext, half, y); writeVertex(x, half, yNext); writeVertex(xNext, half, yNext);
 
             // Base (y = -half)
-            writeVertex(x, -half, y);
-            writeVertex(xNext, -half, y);
-            writeVertex(x, -half, yNext);
-            writeVertex(xNext, -half, y);
-            writeVertex(xNext, -half, yNext);
-            writeVertex(x, -half, yNext);
+            writeVertex(x, -half, y); writeVertex(xNext, -half, y); writeVertex(x, -half, yNext);
+            writeVertex(xNext, -half, y); writeVertex(xNext, -half, yNext); writeVertex(x, -half, yNext);
 
             // Frente (z = half)
-            writeVertex(x, y, half);
-            writeVertex(xNext, y, half);
-            writeVertex(x, yNext, half);
-            writeVertex(xNext, y, half);
-            writeVertex(xNext, yNext, half);
-            writeVertex(x, yNext, half);
+            writeVertex(x, y, half); writeVertex(xNext, y, half); writeVertex(x, yNext, half);
+            writeVertex(xNext, y, half); writeVertex(xNext, yNext, half); writeVertex(x, yNext, half);
 
             // Trás (z = -half)
-            writeVertex(x, y, -half);
-            writeVertex(x, yNext, -half);
-            writeVertex(xNext, y, -half);
-            writeVertex(xNext, y, -half);
-            writeVertex(x, yNext, -half);
-            writeVertex(xNext, yNext, -half);
+            writeVertex(x, y, -half); writeVertex(x, yNext, -half); writeVertex(xNext, y, -half);
+            writeVertex(xNext, y, -half); writeVertex(x, yNext, -half); writeVertex(xNext, yNext, -half);
 
             // Direita (x = half)
-            writeVertex(half, y, x);
-            writeVertex(half, yNext, x);
-            writeVertex(half, y, xNext);
-            writeVertex(half, y, xNext);
-            writeVertex(half, yNext, x);
-            writeVertex(half, yNext, xNext);
+            writeVertex(half, y, x); writeVertex(half, yNext, x); writeVertex(half, y, xNext);
+            writeVertex(half, y, xNext); writeVertex(half, yNext, x); writeVertex(half, yNext, xNext);
 
             // Esquerda (x = -half)
-            writeVertex(-half, y, x);
-            writeVertex(-half, y, xNext);
-            writeVertex(-half, yNext, x);
-            writeVertex(-half, y, xNext);
-            writeVertex(-half, yNext, xNext);
-            writeVertex(-half, yNext, x);
+            writeVertex(-half, y, x); writeVertex(-half, y, xNext); writeVertex(-half, yNext, x);
+            writeVertex(-half, y, xNext); writeVertex(-half, yNext, xNext); writeVertex(-half, yNext, x);
         }
     }
     file.close();
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
 
-void generatePlane(float size, int divisions, const std::string &filename)
-{
+void generatePlane(float size, int divisions, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
-    if (!fs::exists(outputPath))
-    {
+    if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
 
     fs::path filePath = outputPath / filename;
 
     std::ofstream file(filePath);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
     }
 
     float step = size / divisions;
     float half = size / 2.0f;
-    int totalVertices = divisions * divisions * 6; // Cada quadrado é dividido em 2 triângulos, 3 vértices por triângulo
+    int totalVertices = divisions * divisions * 6;  // Cada quadrado é dividido em 2 triângulos, 3 vértices por triângulo
 
     // Escrevendo o número total de vértices no arquivo
     file << totalVertices << std::endl;
 
     // Geração de vértices para cada divisão do plano e escrita direta no arquivo
-    for (int i = 0; i < divisions; ++i)
-    {
-        for (int j = 0; j < divisions; ++j)
-        {
+    for (int i = 0; i < divisions; ++i) {
+        for (int j = 0; j < divisions; ++j) {
             float x = (i * step) - half;
             float z = (j * step) - half;
 
             // Ajustando a ordem dos vértices para que as normais apontem para cima
             // Primeiro triângulo do quadrado
-            file << x << ", 0, " << z + step << std::endl; // Superior esquerdo
-            file << x + step << ", 0, " << z << std::endl; // Inferior direito
-            file << x << ", 0, " << z << std::endl;        // Inferior esquerdo
+            file << x << ", 0, " << z + step << std::endl;          // Superior esquerdo
+            file << x + step << ", 0, " << z << std::endl;          // Inferior direito
+            file << x << ", 0, " << z << std::endl;                 // Inferior esquerdo
 
             // Segundo triângulo do quadrado
-            file << x << ", 0, " << z + step << std::endl;        // Superior esquerdo
-            file << x + step << ", 0, " << z + step << std::endl; // Superior direito
-            file << x + step << ", 0, " << z << std::endl;        // Inferior direito
+            file << x << ", 0, " << z + step << std::endl;          // Superior esquerdo
+            file << x + step << ", 0, " << z + step << std::endl;   // Superior direito
+            file << x + step << ", 0, " << z << std::endl;          // Inferior direito
         }
     }
 
@@ -221,24 +181,21 @@ void generatePlane(float size, int divisions, const std::string &filename)
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
 
-void generateCone(float radius, float height, int slices, int stacks, const std::string &filename)
-{
+
+void generateCone(float radius, float height, int slices, int stacks, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
-    if (!fs::exists(outputPath))
-    {
+    if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
     }
 
     fs::path filePath = outputPath / filename;
 
     std::ofstream file(filePath);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
     }
 
-    // Calculando o número total de vértices
     // Cada slice da base gera 3 vértices e cada stack de cada slice gera 6 vértices
     int totalVertices = slices * 3 + slices * stacks * 6;
     file << totalVertices << std::endl;
@@ -248,21 +205,19 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
     // Diferença de altura entre cada stack
     float deltaHeight = height / stacks;
 
-    // Gerar a base do cone
-    for (int i = 0; i < slices; ++i)
-    {
+    // Gerar a base do cone corrigida para ser visível de baixo
+    for (int i = 0; i < slices; ++i) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
-        // Vértices da base (0, 0, 0) e dois pontos na borda
-        file << "0, 0, 0\n";                                                           // Centro da base
+        // Inverte a ordem dos vértices da borda para a normal apontar para baixo
+        file << "0, 0, 0\n"; // Centro da base
+        file << radius * cos(angle) << ", 0, " << radius * sin(angle) << "\n"; // Ponto atual na borda
         file << radius * cos(nextAngle) << ", 0, " << radius * sin(nextAngle) << "\n"; // Próximo ponto na borda
-        file << radius * cos(angle) << ", 0, " << radius * sin(angle) << "\n";         // Ponto atual na borda
     }
 
     // Gerar os lados do cone
-    for (int i = 0; i < slices; ++i)
-    {
+    for (int i = 0; i < slices; ++i) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
@@ -270,13 +225,13 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         float tipX = 0, tipY = height, tipZ = 0; // Vértice do topo do cone
 
         // Base do cone
-        float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle);         // Ponto atual na borda da base
+        float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle); // Ponto atual na borda da base
         float baseX2 = radius * cos(nextAngle), baseZ2 = radius * sin(nextAngle); // Próximo ponto na borda da base
 
         // Triângulo que liga a base ao topo
         file << tipX << ", " << tipY << ", " << tipZ << "\n"; // Topo
-        file << baseX2 << ", 0, " << baseZ2 << "\n";          // Próximo ponto na borda da base
-        file << baseX1 << ", 0, " << baseZ1 << "\n";          // Ponto atual na borda da base
+        file << baseX2 << ", 0, " << baseZ2 << "\n"; // Próximo ponto na borda da base
+        file << baseX1 << ", 0, " << baseZ1 << "\n"; // Ponto atual na borda da base
     }
 
     file.close();
