@@ -196,7 +196,6 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         return;
     }
 
-    // Calculando o número total de vértices
     // Cada slice da base gera 3 vértices e cada stack de cada slice gera 6 vértices
     int totalVertices = slices * 3 + slices * stacks * 6;
     file << totalVertices << std::endl;
@@ -206,15 +205,15 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
     // Diferença de altura entre cada stack
     float deltaHeight = height / stacks;
 
-    // Gerar a base do cone
+    // Gerar a base do cone corrigida para ser visível de baixo
     for (int i = 0; i < slices; ++i) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
-        // Vértices da base (0, 0, 0) e dois pontos na borda
+        // Inverte a ordem dos vértices da borda para a normal apontar para baixo
         file << "0, 0, 0\n"; // Centro da base
-        file << radius * cos(nextAngle) << ", 0, " << radius * sin(nextAngle) << "\n"; // Próximo ponto na borda
         file << radius * cos(angle) << ", 0, " << radius * sin(angle) << "\n"; // Ponto atual na borda
+        file << radius * cos(nextAngle) << ", 0, " << radius * sin(nextAngle) << "\n"; // Próximo ponto na borda
     }
 
     // Gerar os lados do cone
