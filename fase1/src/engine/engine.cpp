@@ -208,7 +208,12 @@ int main(int argc, char *argv[]) {
 	far     = settings->camera.far;
 	width	= settings->window.width;
 	height	= settings->window.height;
-	fileName = settings->modelFiles[0].fileName;
+	int i = 0;
+	while(settings->modelFiles[i].fileName != ""){
+			const char* fileChar = settings->modelFiles[i].fileName.c_str();
+			addValueList(figuras, fileToFigura(fileChar));
+			i++;
+	}
 	radius	= sqrt(camx * camx + camy * camy + camz * camz);
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius); 
