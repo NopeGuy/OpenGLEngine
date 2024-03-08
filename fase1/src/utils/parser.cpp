@@ -72,23 +72,25 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, CameraSettings& ca
     }
 }
 
-
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
     if (modelsElement) {
-        tinyxml2::XMLElement* modelElement = modelsElement->FirstChildElement("model");
-        while (modelElement) {
+        for (tinyxml2::XMLElement* modelElement = modelsElement->FirstChildElement("model");
+             modelElement != nullptr;
+             modelElement = modelElement->NextSiblingElement("model")) {
+
             ModelFile model;
             const char* fileName = modelElement->Attribute("file");
             if (fileName)
                 model.fileName = fileName;
+
             modelFiles.push_back(model);
-            modelElement = modelElement->NextSiblingElement("model");
         }
     } else {
-        std::cerr << "Model files not found." << std::endl;
+        std::cerr << "Models element not found." << std::endl;
         exit(1);
     }
 }
+
 
 bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc) {
     if (doc.LoadFile(filePath.c_str()) != tinyxml2::XML_SUCCESS) {
