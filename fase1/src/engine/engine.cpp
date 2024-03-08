@@ -111,9 +111,6 @@ void renderScene(void) {
 	glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
-	// put the geometric transformations here
-	// ...
-	//
 
 	// figuras
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
@@ -126,10 +123,7 @@ void renderScene(void) {
 }
 
 // write function to process keyboard events
-
-// Só altera a posição da camera, para debug.
 void specKeyProc(int key_code, int x, int y) {
-	x = y; y=x; // Para não aparecerem os warnings.
 	switch (key_code){
 		case GLUT_KEY_UP:{
 			radius -= 0.1f;
@@ -147,27 +141,27 @@ void specKeyProc(int key_code, int x, int y) {
 	glutPostRedisplay();
 }
 
-// Só altera a posição da camera, para debug, e altera os modes para GL_FILL, GL_LINES, GL_POINT
+
 void keyProc(unsigned char key, int x, int y) {
-	x = y; y=x; // Para não aparecerem os warnings.
+	x = y; y=x;
 	switch (key)
 	{
-		case 'a': { // left
+		case 'a': {
 			alpha -= 0.1f;
 			break;
 		}
 
-		case 'd': { // right
+		case 'd': {
 			alpha += 0.1f;
 			break;
 		}
 
-		case 'w': { // up 
+		case 'w': { 
 			beta_ += beta_ <= 1.48f ? 0.1f : 0.0f;
 			break;
 		}
 
-		case 's': { // down
+		case 's': {
 			beta_ -= beta_ >= -1.48f ? 0.1f : 0.0f;
 			break;
 		}
@@ -221,26 +215,6 @@ int main(int argc, char *argv[]) {
 
 	const char* fileChar = fileName.c_str();
 	addValueList(figuras, fileToFigura(fileChar));
-
-
-
-
-	printf("camx: %f\n", camx);
-	printf("camy: %f\n", camy);
-	printf("camz: %f\n", camz);
-	printf("lookAtx: %f\n", lookAtx);
-	printf("lookAty: %f\n", lookAty);
-	printf("lookAtz: %f\n", lookAtz);
-	printf("upx: %f\n", upx);
-	printf("upy: %f\n", upy);
-	printf("upz: %f\n", upz);
-	printf("fov: %f\n", fov);
-	printf("near: %f\n", near);
-	printf("far: %f\n", far);
-	printf("width: %d\n", width);
-	printf("height: %d\n", height);
-	printf("fileName: %s\n", fileName.c_str());
-
 	
 	// init GLUT and the window
 	glutInit(&argc, argv);
@@ -254,7 +228,7 @@ int main(int argc, char *argv[]) {
 	glutReshapeFunc(changeSize);
 
 	
-	// put here the registration of the keyboard callbacks (por enquanto só mexem na camara como forma de debug)
+	// put here the registration of the keyboard callbacks
 	glutKeyboardFunc(keyProc);
 	glutSpecialFunc(specKeyProc);
 
