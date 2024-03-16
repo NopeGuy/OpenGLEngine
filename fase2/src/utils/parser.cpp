@@ -202,21 +202,46 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 }
 
 
+#include <iostream>
+
+std::ostream& operator<<(std::ostream& os, const Transform& transform) {
+    os << "Transform: type=" << transform.type << ", x=" << transform.x << ", y=" << transform.y << ", z=" << transform.z << ", angle=" << transform.angle;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ModelFile& modelFile) {
+    os << "ModelFile: fileName=" << modelFile.fileName;
+    return os;
+}
+
+void printGroup(const Group& group, int level = 0) {
+    std::string indent(level * 2, ' ');
+    std::cout << indent << "Group:\n";
+    for (const auto& transform : group.transforms) {
+        std::cout << indent << "  " << transform << "\n";
+    }
+    for (const auto& modelFile : group.modelFiles) {
+        std::cout << indent << "  " << modelFile << "\n";
+    }
+    for (const auto& child : group.children) {
+        printGroup(child, level + 1);
+    }
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-		printf("Usage: %s <path to xml file>\n", argv[0]);
-		return 1;
-	}
-	std::string filePath = argv[1];
-	printf("File path: %s\n", filePath.c_str());
-	Parser* settings = ParserSettingsConstructor(filePath);
-	std::cout << "Window width: " << settings->window.width << std::endl;
-	std::cout << "Window height: " << settings->window.height << std::endl;
-	std::cout << "Camera position: (" << settings->camera.position.x << ", " << settings->camera.position.y << ", " << settings->camera.position.z << ")" << std::endl;
-	std::cout << "Camera lookAt: (" << settings->camera.lookAt.x << ", " << settings->camera.lookAt.y << ", " << settings->camera.lookAt.z << ")" << std::endl;
-	std::cout << "Camera up: (" << settings->camera.up.x << ", " << settings->camera.up.y << ", " << settings->camera.up.z << ")" << std::endl;
-	std::cout << "Camera projection: fov=" << settings->camera.projection.fov << ", near=" << settings->camera.projection.near << ", far=" << settings->camera.projection.far << std::endl;
-	std::cout << "Root node has " << settings->rootNode.modelFiles.size() << " model files." << std::endl;
-	std::cout << "Root node has " << settings->rootNode.children.size() << " children." << std::endl;
-	return 0;
-}       
+        printf("Usage: %s <path to xml file>\n", argv[0]);
+        return 1;
+    }
+    std::string filePath = argv[1];
+    printf("File path: %s\n", filePath.c_str());
+    Parser* settings = ParserSettingsConstructor(filePath);
+    std::cout << "Window width: " << settings->window.width << std::endl;
+    std::cout << "Window height: " << settings->window.height << std::endl;
+    std::cout << "Camera position: (" << settings->camera.position.x << ", " << settings->camera.position.y << ", " << settings->camera.position.z << ")" << std::endl;
+    std::cout << "Camera lookAt: (" << settings->camera.lookAt.x << ", " << settings->camera.lookAt.y << ", " << settings->camera.lookAt.z << ")" << std::endl;
+    std::cout << "Camera up: (" << settings->camera.up.x << ", " << settings->camera.up.y << ", " << settings->camera.up.z << ")" << std::endl;
+    std::cout << "Camera projection: fov=" << settings->camera.projection.fov << ", near=" << settings->camera.projection.near << ", far=" << settings->camera.projection.far << std::endl;
+    printGroup(settings->rootNode);
+    return 0;
+}
