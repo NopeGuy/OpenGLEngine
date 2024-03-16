@@ -230,20 +230,3 @@ void printGroup(const Group& group, int level = 0) {
     }
 }
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <path to xml file>\n", argv[0]);
-        return 1;
-    }
-    std::string filePath = argv[1];
-    printf("File path: %s\n", filePath.c_str());
-    Parser* settings = ParserSettingsConstructor(filePath);
-    std::cout << "Window width: " << settings->window.width << std::endl;
-    std::cout << "Window height: " << settings->window.height << std::endl;
-    std::cout << "Camera position: (" << settings->camera.position.x << ", " << settings->camera.position.y << ", " << settings->camera.position.z << ")" << std::endl;
-    std::cout << "Camera lookAt: (" << settings->camera.lookAt.x << ", " << settings->camera.lookAt.y << ", " << settings->camera.lookAt.z << ")" << std::endl;
-    std::cout << "Camera up: (" << settings->camera.up.x << ", " << settings->camera.up.y << ", " << settings->camera.up.z << ")" << std::endl;
-    std::cout << "Camera projection: fov=" << settings->camera.projection.fov << ", near=" << settings->camera.projection.near << ", far=" << settings->camera.projection.far << std::endl;
-    printGroup(settings->rootNode);
-    return 0;
-}
