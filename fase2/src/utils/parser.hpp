@@ -7,23 +7,39 @@
 #include "../tinyXML/tinyxml2.h"
 
 struct WindowSettings {
-    int width = 0;
-    int height = 0;
+    int width;
+    int height;
+};
+
+struct Position {
+    float x;
+    float y;
+    float z;
+};
+
+struct LookAt {
+    float x;
+    float y;
+    float z;
+};
+
+struct Up {
+    float x;
+    float y;
+    float z;
+};
+
+struct Projection {
+    float fov;
+    float near;
+    float far;
 };
 
 struct CameraSettings {
-    float positionX = 0.0f;
-    float positionY = 0.0f;
-    float positionZ = 0.0f;
-    float lookAtX = 0.0f;
-    float lookAtY = 0.0f;
-    float lookAtZ = 0.0f;
-    float upX = 0.0f;
-    float upY = 0.0f;
-    float upZ = 0.0f;
-    float fov = 0.0f;
-    float near = 0.0f;
-    float far = 0.0f;
+    Position position;
+    LookAt lookAt;
+    Up up;
+    Projection projection;
 };
 
 struct ModelFile {
