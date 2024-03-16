@@ -117,6 +117,8 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
             transform.z = atof(t->Attribute("z"));
             if (transform.type == 'r') {
                 transform.angle = atof(t->Attribute("angle"));
+            } else {
+                transform.angle = 0.0f; // Set angle to 0 for transforms of type "t"
             }
             transforms.push_back(transform);
         }
