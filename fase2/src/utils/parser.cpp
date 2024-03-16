@@ -3,7 +3,7 @@
 #include <string>
 #include "../tinyXML/tinyxml2.h"
 
-struct WindowSettings {
+struct Window {
     int width = 0;
     int height = 0;
 };
@@ -22,50 +22,48 @@ struct LookAt {
 
 struct Up {
     float x = 0.0f;
-    float y = 1.0f; // Default up direction
+    float y = 1.0f; 
     float z = 0.0f;
 };
 
 struct Projection {
-    float fov = 60.0f; // Default field of view
-    float near = 1.0f; // Default near plane
-    float far = 1000.0f; // Default far plane
+    float fov = 60.0f; 
+    float near = 1.0f; 
+    float far = 1000.0f; 
 };
 
-struct CameraSettings {
+struct Camera {
     Position position;
     LookAt lookAt;
     Up up;
     Projection projection;
 };
 
+struct Transform {
+    char type;
+    float x;
+    float y;
+    float z;
+    float angle;
+};
+
 struct ModelFile {
     std::string fileName;
 };
 
-struct Transform {
-    float translateX = 0.0f;
-    float translateY = 0.0f;
-    float translateZ = 0.0f;
-    float rotateAngle = 0.0f;
-    float rotateX = 0.0f;
-    float rotateY = 1.0f;
-    float rotateZ = 0.0f;
-};
-
-struct GroupNode {
-    Transform transform;
+struct Group {
+    std::vector<Transform> transforms;
     std::vector<ModelFile> modelFiles;
-    std::vector<GroupNode> children;
+    std::vector<Group> children;
 };
 
-struct ParserSettings {
-    WindowSettings window;
-    CameraSettings camera;
-    GroupNode rootNode;
+struct Parser {
+    Window window;
+    Camera camera;
+    Group rootNode;
 };
 
-void parseWindowSettings(tinyxml2::XMLElement* windowElement, WindowSettings& window) {
+void parseWindowSettings(tinyxml2::XMLElement* windowElement, Window& window) {
     if (windowElement) {
         windowElement->QueryIntAttribute("width", &window.width);
         windowElement->QueryIntAttribute("height", &window.height);
@@ -76,7 +74,7 @@ void parseWindowSettings(tinyxml2::XMLElement* windowElement, WindowSettings& wi
     }
 }
 
-void parseCameraSettings(tinyxml2::XMLElement* cameraElement, CameraSettings& camera) {
+void parseCameraSettings(tinyxml2::XMLElement* cameraElement, Camera& camera) {
     if (cameraElement) {
         auto positionElement = cameraElement->FirstChildElement("position");
         auto lookAtElement = cameraElement->FirstChildElement("lookAt");
@@ -109,17 +107,22 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, CameraSettings& ca
     }
 }
 
-void parseTransform(tinyxml2::XMLElement* transformElement, Transform& transform) {
+void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transform>& transforms) {
     if (transformElement) {
-        transformElement->QueryFloatAttribute("translateX", &transform.translateX);
-        transformElement->QueryFloatAttribute("translateY", &transform.translateY);
-        transformElement->QueryFloatAttribute("translateZ", &transform.translateZ);
-        transformElement->QueryFloatAttribute("rotateAngle", &transform.rotateAngle);
-        transformElement->QueryFloatAttribute("rotateX", &transform.rotateX);
-        transformElement->QueryFloatAttribute("rotateY", &transform.rotateY);
-        transformElement->QueryFloatAttribute("rotateZ", &transform.rotateZ);
+        for (tinyxml2::XMLElement* t = transformElement->FirstChildElement(); t; t = t->NextSiblingElement()) {
+            Transform transform;
+            transform.type = t->Value()[0];
+            transform.x = atof(t->Attribute("x"));
+            transform.y = atof(t->Attribute("y"));
+            transform.z = atof(t->Attribute("z"));
+            if (transform.type == 'r') {
+                transform.angle = atof(t->Attribute("angle"));
+            }
+            transforms.push_back(transform);
+        }
     }
 }
+
 
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
     if (modelsElement) {
@@ -133,17 +136,13 @@ void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>
             modelElement = modelElement->NextSiblingElement("model");
         }
     }
-    else {
-        std::cerr << "Model files not found." << std::endl;
-        exit(1);
-    }
 }
 
-void parseGroupNode(tinyxml2::XMLElement* groupElement, GroupNode& groupNode) {
+void parseGroupNode(tinyxml2::XMLElement* groupElement, Group& groupNode) {
     if (groupElement) {
         auto transformElement = groupElement->FirstChildElement("transform");
         if (transformElement) {
-            parseTransform(transformElement, groupNode.transform);
+            parseTransform(transformElement, groupNode.transforms);
         }
 
         auto modelsElement = groupElement->FirstChildElement("models");
@@ -153,13 +152,15 @@ void parseGroupNode(tinyxml2::XMLElement* groupElement, GroupNode& groupNode) {
 
         auto childElement = groupElement->FirstChildElement("group");
         while (childElement) {
-            GroupNode childNode;
+            Group childNode;
             parseGroupNode(childElement, childNode);
             groupNode.children.push_back(childNode);
             childElement = childElement->NextSiblingElement("group");
         }
     }
 }
+
+
 
 bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc) {
     if (doc.LoadFile(filePath.c_str()) != tinyxml2::XML_SUCCESS) {
@@ -169,8 +170,8 @@ bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc) {
     return true;
 }
 
-ParserSettings* ParserSettingsConstructor(const std::string& filePath) {
-    ParserSettings* settings = new ParserSettings;
+Parser* ParserSettingsConstructor(const std::string& filePath) {
+    Parser* settings = new Parser;
 
     tinyxml2::XMLDocument doc;
     if (!loadXML(filePath, doc)) {
@@ -200,6 +201,7 @@ ParserSettings* ParserSettingsConstructor(const std::string& filePath) {
     return settings;
 }
 
+
 int main(int argc, char* argv[]) {
     if (argc != 2) {
 		printf("Usage: %s <path to xml file>\n", argv[0]);
@@ -207,7 +209,7 @@ int main(int argc, char* argv[]) {
 	}
 	std::string filePath = argv[1];
 	printf("File path: %s\n", filePath.c_str());
-	ParserSettings* settings = ParserSettingsConstructor(filePath);
+	Parser* settings = ParserSettingsConstructor(filePath);
 	std::cout << "Window width: " << settings->window.width << std::endl;
 	std::cout << "Window height: " << settings->window.height << std::endl;
 	std::cout << "Camera position: (" << settings->camera.position.x << ", " << settings->camera.position.y << ", " << settings->camera.position.z << ")" << std::endl;
