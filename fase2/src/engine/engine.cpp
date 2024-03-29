@@ -12,6 +12,7 @@
 #include "../utils/list.hpp"
 #include "../tinyXML/tinyxml2.h"
 #include "../utils/parser.hpp"
+#include "../utils/group.hpp"
 
 using namespace std;
 
@@ -90,6 +91,39 @@ void drawFiguras(List figs){
 	}
 }
 
+void drawGroups(const Group* group)
+{
+	if (group != nullptr)
+	{
+		glPushMatrix();
+
+		for (const auto& transform : group->transforms) {
+			switch (transform.type) {
+			case 't': // Translate
+				glTranslatef(transform.x, transform.y, transform.z);
+				break;
+			case 'r': // Rotate
+				glRotatef(transform.angle, transform.x, transform.y, transform.z);
+				break;
+			case 's': // Scale
+				glScalef(transform.x, transform.y, transform.z);
+				break;
+			}
+		}
+
+		glBegin(GL_TRIANGLES);
+		drawFiguras(modelVectorToList(group->modelFiles));
+		glEnd();
+
+		// Renderizar recursivamente os child groups
+		for (const auto& child : group->children) {
+			drawGroups(&child);
+		}
+
+		glPopMatrix();
+	}
+}
+
 void renderScene(void) {
 
 	// clear buffers
@@ -119,11 +153,9 @@ void renderScene(void) {
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 
-	// figuras
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
-	glBegin(GL_TRIANGLES);
-	drawFiguras(figuras);
-    glEnd();
+
+	drawGroups(settings->rootNode);
 	
 	// End of frame
 	glutSwapBuffers();
@@ -216,10 +248,10 @@ int main(int argc, char *argv[]) {
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius); 
 
-	for (const auto& modelFile : settings->modelFiles) {
+	/*for (const auto& modelFile : settings->modelFiles) {
 		const char* fileChar = modelFile.fileName.c_str();
 		addValueList(figuras, fileToFigura(fileChar));
-	}
+	}*/
 	
 	// init GLUT and the window
 	glutInit(&argc, argv);

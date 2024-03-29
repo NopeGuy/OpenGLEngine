@@ -77,3 +77,14 @@ void deepDeleteList(List list, void (*free_function)(void *)){
         free(list);
     }
 }
+
+List modelVectorToList(const std::vector<ModelFile>& vec) {
+    List list = newEmptyList();
+    if (!list) return nullptr;
+
+    for (const ModelFile& item : vec) {
+        addValueList(list, (void*)&item);
+    }
+
+    return list;
+}

@@ -19,4 +19,7 @@ void generatePlane(float size, int divisions, const std::string& filename);
 // Declaração da função generateCone
 void generateCone(float radius, float height, int slices, int stacks, const std::string& filename);
 
+// Declaração da função generateRing
+void generateRing(float ir, float er, int slices, const std::string& filename);
+
 #endif // GEOMETRY_H

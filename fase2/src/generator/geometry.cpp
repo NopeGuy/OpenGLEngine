@@ -237,3 +237,53 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
     file.close();
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
+
+void generateRing(float ir, float er, int slices, const std::string& filename) {
+    fs::path outputPath = fs::current_path().parent_path() / "output";
+    if (!fs::exists(outputPath)) {
+        fs::create_directories(outputPath);
+    }
+
+    fs::path filePath = outputPath / filename;
+
+    std::ofstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
+        return;
+    }
+    if (slices <= 0)
+    {
+        std::cerr << "Não pode ter um slices <=0" << std::endl;
+        return;
+    }
+    // Ângulo entre cada slice
+    float deltaAngle = 2 * M_PI / slices;
+
+    // Vertices 2faces * 2 triangulos * 3pontos
+    int totalVertices = 2 * 2 * 3 * slices;
+    file << totalVertices << std::endl;
+
+    // Função de vértices (para ser mais legivel)
+    auto writeVertex = [&](float x, float y, float z) {
+        file << x << "," << y << "," << z << std::endl;
+        };
+
+    float pos = 0;
+    for (int i = 0;i < slices; i++, pos += deltaAngle) {
+        writeVertex(pos, 0.0f, ir);
+        writeVertex(pos, 0.0f, er);
+        writeVertex(pos + deltaAngle, 0.0f, ir);
+
+        writeVertex(pos + deltaAngle, 0.0f, ir);
+        writeVertex(pos, 0.0f, er);
+        writeVertex(pos, 0.0f, ir);
+
+        writeVertex(pos + deltaAngle, 0.0f, ir);
+        writeVertex(pos, 0.0f, er);
+        writeVertex(pos + deltaAngle, 0.0f, er);
+
+        writeVertex(pos, 0.0f, er);
+        writeVertex(pos + deltaAngle, 0.0f, ir); //maybe switch these?
+        writeVertex(pos + deltaAngle, 0.0f, er);
+    }
+}

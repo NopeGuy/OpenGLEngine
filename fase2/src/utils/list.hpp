@@ -1,6 +1,8 @@
 #ifndef LIST
 #define LIST
 #include <stdlib.h>
+#include <vector>
+#include "parser.hpp"
 
 #define STDSIZE 100
 
@@ -21,5 +23,7 @@ void* getListElemAt(List, unsigned long);
 void deleteList(List);
 
 void deepDeleteList(List, void (*)(void *));
+
+List modelVectorToList(const std::vector<ModelFile>& vec);
 
 #endif // LIST
