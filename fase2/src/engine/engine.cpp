@@ -50,6 +50,7 @@ std::string fileName = "";
 
 int mode = GL_LINE;
 
+Parser* settings = new Parser();
 List figuras = NULL;
 
 
@@ -90,6 +91,47 @@ void drawFiguras(List figs){
 	}
 }
 
+void drawGroups(const Group* group)
+{
+	if (group != nullptr)
+	{
+		glPushMatrix();
+		int i = 0;
+		for (const auto& transform : group->transforms) {
+			switch (transform.type) {
+			case 't': // Translate
+				glTranslatef(transform.x, transform.y, transform.z);
+				break;
+			case 'r': // Rotate
+				glRotatef(transform.angle, transform.x, transform.y, transform.z);
+				break;
+			case 's': // Scale
+				glScalef(transform.x, transform.y, transform.z);
+				break;
+			}
+		}
+
+		for (const auto& modelFile : group->modelFiles) {
+			const char* fileChar = modelFile.fileName.c_str();
+			addValueList(figuras, fileToFigura(fileChar));
+		}
+
+		glBegin(GL_TRIANGLES);
+		drawFiguras(figuras);
+		glEnd();
+
+		cleanList(figuras, deleteFigura);
+		
+
+		// Renderizar recursivamente os child groups
+		for (const auto& child : group->children) {
+			drawGroups(&child);
+		}
+
+		glPopMatrix();
+	}
+}
+
 void renderScene(void) {
 
 	// clear buffers
@@ -105,25 +147,23 @@ void renderScene(void) {
 	glBegin(GL_LINES);
 		// X axis in red
 		glColor3f(1.0f, 0.0f, 0.0f);
-		glVertex3f(-100.0f, 0.0f, 0.0f);
-		glVertex3f( 100.0f, 0.0f, 0.0f);
+		glVertex3f(-200.0f, 0.0f, 0.0f);
+		glVertex3f( 200.0f, 0.0f, 0.0f);
 		// Y Axis in Green
 		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex3f(0.0f,-100.0f, 0.0f);
-		glVertex3f(0.0f, 100.0f, 0.0f);
+		glVertex3f(0.0f,-200.0f, 0.0f);
+		glVertex3f(0.0f, 200.0f, 0.0f);
 		// Z Axis in Blue
 		glColor3f(0.0f, 0.0f, 1.0f);
-		glVertex3f(0.0f, 0.0f,-100.0f);
-		glVertex3f(0.0f, 0.0f, 100.0f);
+		glVertex3f(0.0f, 0.0f,-200.0f);
+		glVertex3f(0.0f, 0.0f, 200.0f);
 	glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 
-	// figuras
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
-	glBegin(GL_TRIANGLES);
-	drawFiguras(figuras);
-    glEnd();
+
+	drawGroups(&settings->rootNode);
 	
 	// End of frame
 	glutSwapBuffers();
@@ -132,12 +172,12 @@ void renderScene(void) {
 void specKeyProc(int key_code, int x, int y) {
 	switch (key_code){
 		case GLUT_KEY_UP:{
-			radius -= 0.1f;
+			radius -= 0.5f;
 			break;
 		}
 		
 		case GLUT_KEY_DOWN:{
-			radius += 0.1f;
+			radius += 0.5f;
 			break;
 		}
 
@@ -197,8 +237,8 @@ int main(int argc, char *argv[]) {
 	std::string filePath = argv[1];	
 	printf("File path: %s\n", filePath.c_str());
 	figuras = newEmptyList();
-	ParserSettings* settings = ParserSettingsConstructor(filePath);
-	camx    = settings->camera.position.x;
+	settings = ParserSettingsConstructor(filePath);
+	camx    = settings->camera.position.x;	
 	camy    = settings->camera.position.y;
 	camz    = settings->camera.position.z;
 	lookAtx = settings->camera.lookAt.x;
@@ -216,10 +256,7 @@ int main(int argc, char *argv[]) {
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius); 
 
-	for (const auto& modelFile : settings->modelFiles) {
-		const char* fileChar = modelFile.fileName.c_str();
-		addValueList(figuras, fileToFigura(fileChar));
-	}
+
 	
 	// init GLUT and the window
 	glutInit(&argc, argv);
@@ -245,6 +282,7 @@ int main(int argc, char *argv[]) {
 	// enter GLUT's main cycle
 	glutMainLoop();
 	
-	deepDeleteList(figuras,deleteFigura);
+	deepDeleteList(figuras, deleteFigura);
+
 	return 1;
 }
