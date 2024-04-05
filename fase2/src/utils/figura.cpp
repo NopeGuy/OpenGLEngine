@@ -58,7 +58,6 @@ void figuraToFile(Figura f, const char* path){
 }
 
 Figura fileToFigura(const char* path) {
-    printf("A abrir o ficheiro '%s'\n", path);
     Figura f = newEmptyFigura();
     FILE* file = fopen(path, "r");
     if (f && file) {
