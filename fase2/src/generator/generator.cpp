@@ -64,6 +64,17 @@ int main(int argc, char* argv[]) {
         std::string outputFile = argv[6];
         generateCone(radius, height, slices, stacks, outputFile);
         return 0;    
+    }else if (object == "ring") {
+        if (argc != 6) {
+            std::cerr << "Usage for ring: " << argv[0] << " ring <internalRadius> <externalRadius> <slices> <output_file>" << std::endl;
+            return 1;
+        }
+        float ir = std::stof(argv[2]);
+        int er = std::stof(argv[3]);
+        int slices = std::stoi(argv[4]);
+        std::string outputFile = argv[5];
+        generateRing(ir, er, slices, outputFile);
+        return 0;
     }else {
         std::cerr << "Unknown object type." << std::endl;
         return 1;

@@ -65,11 +65,13 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, CameraSettings& ca
         projectionElement->QueryFloatAttribute("fov", &camera.fov);
         projectionElement->QueryFloatAttribute("near", &camera.near);
         projectionElement->QueryFloatAttribute("far", &camera.far);
-    } else {
+    }
+    else {
         std::cerr << "Camera settings not found." << std::endl;
         exit(1);
     }
 }
+
 
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
     if (modelsElement) {
