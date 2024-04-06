@@ -228,7 +228,6 @@ void keyProc(unsigned char key, int x, int y) {
 	glutPostRedisplay();
 }
 
-/*
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		printf("Usage: %s <path to xml file>\n", argv[0]);
@@ -285,7 +284,9 @@ int main(int argc, char *argv[]) {
 	deepDeleteList(figuras, deleteFigura);
 
 	return 1;
-} */
+} 
+
+/* Debugging function to print the parsed values
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
@@ -310,3 +311,4 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+*/
