@@ -39,13 +39,19 @@ struct Camera {
     Projection projection;
 };
 
+#include <vector>
+
 struct Transform {
     char type;
     float x;
     float y;
     float z;
     float angle;
+    float time; 
+    bool align;  
+    std::vector<Position> points; 
 };
+
 
 struct ModelFile {
     std::string fileName;
@@ -112,11 +118,43 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
         for (tinyxml2::XMLElement* t = transformElement->FirstChildElement(); t; t = t->NextSiblingElement()) {
             Transform transform;
             transform.type = t->Value()[0];
-            transform.x = atof(t->Attribute("x"));
-            transform.y = atof(t->Attribute("y"));
-            transform.z = atof(t->Attribute("z"));
-            if (transform.type == 'r') {
-                transform.angle = atof(t->Attribute("angle"));
+            if (transform.type == 't') {
+                const char* timeAttr = t->Attribute("time");
+                if (timeAttr) {
+                    transform.time = atof(timeAttr);
+                    transform.align = t->BoolAttribute("align", false);
+                    tinyxml2::XMLElement* pointElement = t->FirstChildElement("point");
+                    while (pointElement) {
+                        Position point;
+                        pointElement->QueryFloatAttribute("x", &point.x);
+                        pointElement->QueryFloatAttribute("y", &point.y);
+                        pointElement->QueryFloatAttribute("z", &point.z);
+                        transform.points.push_back(point);
+                        pointElement = pointElement->NextSiblingElement("point");
+                    }
+                }
+                else {
+                    transform.type = 0.0f;
+                    transform.x = atof(t->Attribute("x"));
+                    transform.y = atof(t->Attribute("y"));
+                    transform.z = atof(t->Attribute("z"));
+                }
+            }
+            else if (transform.type == 'r') {
+                const char* timeAttr = t->Attribute("time");
+                if (timeAttr) {
+                    transform.time = atof(timeAttr);
+                    transform.x = atof(t->Attribute("x"));
+                    transform.y = atof(t->Attribute("y"));
+                    transform.z = atof(t->Attribute("z"));
+                }
+                else {
+                    transform.time = 0.0f;
+                    transform.angle = atof(t->Attribute("angle"));
+                    transform.x = atof(t->Attribute("x"));
+                    transform.y = atof(t->Attribute("y"));
+                    transform.z = atof(t->Attribute("z"));
+                }
             }
             else {
                 transform.angle = 0.0f; // Set angle to 0 for transforms of type "t"
@@ -125,6 +163,7 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
         }
     }
 }
+
 
 
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
@@ -224,12 +263,31 @@ void print(const Parser& parser) {
     for (const auto& transform : parser.rootNode.transforms) {
         std::cout << "  Type: " << transform.type << std::endl;
         if (transform.type == 't') {
-            std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;         
+            if (transform.time != 0.0f) {
+                std::cout << "Time: " << transform.time << std::endl;
+                std::cout << "Align: " << (transform.align ? "true" : "false") << std::endl;
+                for (const auto& point : transform.points) {
+                    std::cout << "Translation Point: (" << point.x << ", " << point.y << ", " << point.z << ")" << std::endl;
+                }
+            }
+            else {
+                std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            }
         }
         else if (transform.type == 'r') {
-            std::cout << "Rotation: (" << transform.angle << ", " << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            if (transform.time != 0.0f) {
+                std::cout << "Time: " << transform.time << std::endl;
+            }
+            else {
+                std::cout << "Angle: " << transform.angle << std::endl;
+            }
+            std::cout << "Rotation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+        }
+        else {
+            std::cout << "Unknown transform type: " << transform.type << std::endl;
         }
     }
+
 
     if (!parser.rootNode.modelFiles.empty()) {
         std::cout << "\nModel Files:" << std::endl;
@@ -245,10 +303,28 @@ void print(const Parser& parser) {
         for (const auto& transform : child.transforms) {
             std::cout << "  Type: " << transform.type << std::endl;
             if (transform.type == 't') {
-                std::cout << "  Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+                if (transform.time != 0.0f) {
+                    std::cout << "Time: " << transform.time << std::endl;
+                    std::cout << "Align: " << (transform.align ? "true" : "false") << std::endl;
+                    for (const auto& point : transform.points) {
+                        std::cout << "Translation Point: (" << point.x << ", " << point.y << ", " << point.z << ")" << std::endl;
+                    }
+                }
+                else {
+                    std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+                }
             }
             else if (transform.type == 'r') {
-                std::cout << "  Rotation: (" << transform.angle << ", " << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+                if (transform.time != 0.0f) {
+                    std::cout << "Time: " << transform.time << std::endl;
+                }
+                else {
+                    std::cout << "Angle: " << transform.angle << std::endl;
+                }
+                std::cout << "Rotation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            }
+            else {
+                std::cout << "Unknown transform type: " << transform.type << std::endl;
             }
         }
         std::cout << "Model Files:" << std::endl;
