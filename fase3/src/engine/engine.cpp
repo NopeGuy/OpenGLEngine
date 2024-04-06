@@ -285,8 +285,7 @@ int main(int argc, char *argv[]) {
 	deepDeleteList(figuras, deleteFigura);
 
 	return 1;
-}
-*/
+} */
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) {

@@ -22,14 +22,14 @@ struct LookAt {
 
 struct Up {
     float x = 0.0f;
-    float y = 1.0f;
+    float y = 1.0f; 
     float z = 0.0f;
 };
 
 struct Projection {
-    float fov = 60.0f;
-    float near = 1.0f;
-    float far = 1000.0f;
+    float fov = 60.0f; 
+    float near = 1.0f; 
+    float far = 1000.0f; 
 };
 
 struct Camera {
@@ -39,19 +39,16 @@ struct Camera {
     Projection projection;
 };
 
-#include <vector>
-
 struct Transform {
     char type;
     float x;
     float y;
     float z;
     float angle;
-    float time; 
-    bool align;  
-    std::vector<Position> points; 
+    float time;
+    bool align;
+    std::vector<Position> points;
 };
-
 
 struct ModelFile {
     std::string fileName;
@@ -156,12 +153,12 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
                     transform.z = atof(t->Attribute("z"));
                 }
             }
-            else if(transform.type == 's') {
-                    transform.time = 0.0f;
-					transform.x = atof(t->Attribute("x"));
-					transform.y = atof(t->Attribute("y"));
-					transform.z = atof(t->Attribute("z"));
-			}
+            else if (transform.type == 's') {
+                transform.time = 0.0f;
+                transform.x = atof(t->Attribute("x"));
+                transform.y = atof(t->Attribute("y"));
+                transform.z = atof(t->Attribute("z"));
+            }
             else {
                 transform.angle = 0.0f;
             }
@@ -169,8 +166,6 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
         }
     }
 }
-
-
 
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
     if (modelsElement) {
@@ -248,6 +243,8 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 
     return settings;
 }
+
+
 void printGroup(const Group& group, int depth = 0) {
     for (const auto& transform : group.transforms) {
         for (int i = 0; i < depth; ++i)

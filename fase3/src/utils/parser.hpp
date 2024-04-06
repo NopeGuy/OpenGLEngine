@@ -42,12 +42,16 @@ struct Camera {
     Projection projection;
 };
 
+
 struct Transform {
     char type;
     float x;
     float y;
     float z;
     float angle;
+    float time;
+    bool align;
+    std::vector<Position> points;
 };
 
 struct ModelFile {
@@ -73,9 +77,6 @@ void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>
 void parseGroupNode(tinyxml2::XMLElement* groupElement, Group& groupNode);
 bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc);
 Parser* ParserSettingsConstructor(const std::string& filePath);
-void print(const Parser& settings);
-void printGroupNode(const Group& group, int depth);
-
-
+void print(const Parser& parser);
 
 #endif // XML_PARSER_HPP
