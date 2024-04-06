@@ -134,7 +134,7 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
                     }
                 }
                 else {
-                    transform.type = 0.0f;
+                    transform.time = 0.0f;
                     transform.x = atof(t->Attribute("x"));
                     transform.y = atof(t->Attribute("y"));
                     transform.z = atof(t->Attribute("z"));
@@ -156,8 +156,14 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
                     transform.z = atof(t->Attribute("z"));
                 }
             }
+            else if(transform.type == 's') {
+                    transform.time = 0.0f;
+					transform.x = atof(t->Attribute("x"));
+					transform.y = atof(t->Attribute("y"));
+					transform.z = atof(t->Attribute("z"));
+			}
             else {
-                transform.angle = 0.0f; // Set angle to 0 for transforms of type "t"
+                transform.angle = 0.0f;
             }
             transforms.push_back(transform);
         }
@@ -242,13 +248,77 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 
     return settings;
 }
+void printGroup(const Group& group, int depth = 0) {
+    for (const auto& transform : group.transforms) {
+        for (int i = 0; i < depth; ++i)
+            std::cout << "  ";
+        std::cout << "Type: " << transform.type << std::endl;
+        if (transform.type == 't') {
+            if (transform.time != 0.0f) {
+                for (int i = 0; i < depth; ++i)
+                    std::cout << "  ";
+                std::cout << "Time: " << transform.time << std::endl;
+                for (int i = 0; i < depth; ++i)
+                    std::cout << "  ";
+                std::cout << "Align: " << (transform.align ? "true" : "false") << std::endl;
+                for (const auto& point : transform.points) {
+                    for (int i = 0; i < depth; ++i)
+                        std::cout << "  ";
+                    std::cout << "Translation Point: (" << point.x << ", " << point.y << ", " << point.z << ")" << std::endl;
+                }
+            }
+            else {
+                for (int i = 0; i < depth; ++i)
+                    std::cout << "  ";
+                std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            }
+        }
+        else if (transform.type == 'r') {
+            if (transform.time != 0.0f) {
+                for (int i = 0; i < depth; ++i)
+                    std::cout << "  ";
+                std::cout << "Time: " << transform.time << std::endl;
+            }
+            else {
+                for (int i = 0; i < depth; ++i)
+                    std::cout << "  ";
+                std::cout << "Angle: " << transform.angle << std::endl;
+            }
+            for (int i = 0; i < depth; ++i)
+                std::cout << "  ";
+            std::cout << "Rotation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+        }
+        else if (transform.type == 's') {
+            for (int i = 0; i < depth; ++i)
+                std::cout << "  ";
+            std::cout << "Scale: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+        }
+        else {
+            for (int i = 0; i < depth; ++i)
+                std::cout << "  ";
+            std::cout << "Unknown transform type: " << transform.type << std::endl;
+        }
+    }
+
+    for (const auto& model : group.modelFiles) {
+        for (int i = 0; i < depth; ++i)
+            std::cout << "  ";
+        std::cout << "File Name: " << model.fileName << std::endl;
+    }
+
+    for (const auto& child : group.children) {
+        for (int i = 0; i < depth; ++i)
+            std::cout << "  ";
+        std::cout << "Child Group:" << std::endl;
+        printGroup(child, depth + 1);
+    }
+}
+
 void print(const Parser& parser) {
-    // Printing window settings
     std::cout << "Window settings:" << std::endl;
     std::cout << "Width: " << parser.window.width << std::endl;
     std::cout << "Height: " << parser.window.height << std::endl;
 
-    // Printing camera settings
     std::cout << "\nCamera settings:" << std::endl;
     std::cout << "Position: (" << parser.camera.position.x << ", " << parser.camera.position.y << ", " << parser.camera.position.z << ")" << std::endl;
     std::cout << "LookAt: (" << parser.camera.lookAt.x << ", " << parser.camera.lookAt.y << ", " << parser.camera.lookAt.z << ")" << std::endl;
@@ -258,78 +328,8 @@ void print(const Parser& parser) {
     std::cout << "Near: " << parser.camera.projection.near << std::endl;
     std::cout << "Far: " << parser.camera.projection.far << std::endl;
 
-    // Printing transforms
     std::cout << "\nTransforms:" << std::endl;
-    for (const auto& transform : parser.rootNode.transforms) {
-        std::cout << "  Type: " << transform.type << std::endl;
-        if (transform.type == 't') {
-            if (transform.time != 0.0f) {
-                std::cout << "Time: " << transform.time << std::endl;
-                std::cout << "Align: " << (transform.align ? "true" : "false") << std::endl;
-                for (const auto& point : transform.points) {
-                    std::cout << "Translation Point: (" << point.x << ", " << point.y << ", " << point.z << ")" << std::endl;
-                }
-            }
-            else {
-                std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
-            }
-        }
-        else if (transform.type == 'r') {
-            if (transform.time != 0.0f) {
-                std::cout << "Time: " << transform.time << std::endl;
-            }
-            else {
-                std::cout << "Angle: " << transform.angle << std::endl;
-            }
-            std::cout << "Rotation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
-        }
-        else {
-            std::cout << "Unknown transform type: " << transform.type << std::endl;
-        }
-    }
+    printGroup(parser.rootNode);
 
-
-    if (!parser.rootNode.modelFiles.empty()) {
-        std::cout << "\nModel Files:" << std::endl;
-        for (const auto& model : parser.rootNode.modelFiles) {
-            std::cout << "File Name: " << model.fileName << std::endl;
-        }
-    }
-
-    // Printing child group nodes
-    std::cout << "\nChild Groups:" << std::endl;
-    for (const auto& child : parser.rootNode.children) {
-        std::cout << "Transforms:" << std::endl;
-        for (const auto& transform : child.transforms) {
-            std::cout << "  Type: " << transform.type << std::endl;
-            if (transform.type == 't') {
-                if (transform.time != 0.0f) {
-                    std::cout << "Time: " << transform.time << std::endl;
-                    std::cout << "Align: " << (transform.align ? "true" : "false") << std::endl;
-                    for (const auto& point : transform.points) {
-                        std::cout << "Translation Point: (" << point.x << ", " << point.y << ", " << point.z << ")" << std::endl;
-                    }
-                }
-                else {
-                    std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
-                }
-            }
-            else if (transform.type == 'r') {
-                if (transform.time != 0.0f) {
-                    std::cout << "Time: " << transform.time << std::endl;
-                }
-                else {
-                    std::cout << "Angle: " << transform.angle << std::endl;
-                }
-                std::cout << "Rotation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
-            }
-            else {
-                std::cout << "Unknown transform type: " << transform.type << std::endl;
-            }
-        }
-        std::cout << "Model Files:" << std::endl;
-        for (const auto& model : child.modelFiles) {
-            std::cout << "  File Name: " << model.fileName << std::endl;
-        }
-    }
+    std::cout << std::endl;
 }
