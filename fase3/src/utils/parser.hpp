@@ -73,9 +73,9 @@ void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>
 void parseGroupNode(tinyxml2::XMLElement* groupElement, Group& groupNode);
 bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc);
 Parser* ParserSettingsConstructor(const std::string& filePath);
-std::ostream& operator<<(std::ostream& os, const Transform& transform);
-std::ostream& operator<<(std::ostream& os, const ModelFile& modelFile);
-void printGroup(const Group& group, int level = 0);
-void printParser(const Parser& parser);
+void print(const Parser& settings);
+void printGroupNode(const Group& group, int depth);
+
+
 
 #endif // XML_PARSER_HPP

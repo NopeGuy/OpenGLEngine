@@ -22,14 +22,14 @@ struct LookAt {
 
 struct Up {
     float x = 0.0f;
-    float y = 1.0f; 
+    float y = 1.0f;
     float z = 0.0f;
 };
 
 struct Projection {
-    float fov = 60.0f; 
-    float near = 1.0f; 
-    float far = 1000.0f; 
+    float fov = 60.0f;
+    float near = 1.0f;
+    float far = 1000.0f;
 };
 
 struct Camera {
@@ -45,9 +45,6 @@ struct Transform {
     float y;
     float z;
     float angle;
-    float time; 
-    bool align; 
-    std::vector<Position> points; 
 };
 
 struct ModelFile {
@@ -119,27 +116,16 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
             transform.y = atof(t->Attribute("y"));
             transform.z = atof(t->Attribute("z"));
             if (transform.type == 'r') {
-                const char* timeAttr = t->Attribute("time");
-                if (timeAttr) {
-                    transform.time = atof(timeAttr);
-                } else {
-                    transform.angle = atof(t->Attribute("angle"));
-                }
-            } else if (transform.type == 't') {
-                transform.time = atof(t->Attribute("time"));
-                transform.align = strcmp(t->Attribute("align"), "True") == 0;
-                for (tinyxml2::XMLElement* p = t->FirstChildElement("point"); p; p = p->NextSiblingElement("point")) {
-                    Position point;
-                    point.x = atof(p->Attribute("x"));
-                    point.y = atof(p->Attribute("y"));
-                    point.z = atof(p->Attribute("z"));
-                    transform.points.push_back(point);
-                }
+                transform.angle = atof(t->Attribute("angle"));
+            }
+            else {
+                transform.angle = 0.0f; // Set angle to 0 for transforms of type "t"
             }
             transforms.push_back(transform);
         }
     }
 }
+
 
 void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
     if (modelsElement) {
@@ -217,63 +203,57 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 
     return settings;
 }
+void print(const Parser& parser) {
+    // Printing window settings
+    std::cout << "Window settings:" << std::endl;
+    std::cout << "Width: " << parser.window.width << std::endl;
+    std::cout << "Height: " << parser.window.height << std::endl;
 
+    // Printing camera settings
+    std::cout << "\nCamera settings:" << std::endl;
+    std::cout << "Position: (" << parser.camera.position.x << ", " << parser.camera.position.y << ", " << parser.camera.position.z << ")" << std::endl;
+    std::cout << "LookAt: (" << parser.camera.lookAt.x << ", " << parser.camera.lookAt.y << ", " << parser.camera.lookAt.z << ")" << std::endl;
+    std::cout << "Up: (" << parser.camera.up.x << ", " << parser.camera.up.y << ", " << parser.camera.up.z << ")" << std::endl;
+    std::cout << "Projection:" << std::endl;
+    std::cout << "FOV: " << parser.camera.projection.fov << std::endl;
+    std::cout << "Near: " << parser.camera.projection.near << std::endl;
+    std::cout << "Far: " << parser.camera.projection.far << std::endl;
 
-#include <iostream>
-
-std::ostream& operator<<(std::ostream& os, const Transform& transform) {
-    os << "Transform: type=" << transform.type << ", x=" << transform.x << ", y=" << transform.y << ", z=" << transform.z << ", angle=" << transform.angle;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ModelFile& modelFile) {
-    os << "ModelFile: fileName=" << modelFile.fileName;
-    return os;
-}
-
-void printGroup(const Group& group, int level = 0) {
-    std::string indent(level * 2, ' ');
-    std::cout << indent << "Group:\n";
-    for (const auto& transform : group.transforms) {
-        std::cout << indent << "  " << transform << "\n";
-    }
-    for (const auto& modelFile : group.modelFiles) {
-        std::cout << indent << "  " << modelFile << "\n";
-    }
-    for (const auto& child : group.children) {
-        printGroup(child, level + 1);
-    }
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: ./program <filePath>" << std::endl;
-        return 1;
+    // Printing transforms
+    std::cout << "\nTransforms:" << std::endl;
+    for (const auto& transform : parser.rootNode.transforms) {
+        std::cout << "  Type: " << transform.type << std::endl;
+        if (transform.type == 't') {
+            std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;         
+        }
+        else if (transform.type == 'r') {
+            std::cout << "Rotation: (" << transform.angle << ", " << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+        }
     }
 
-    std::string filePath = argv[1];
-
-    Parser* settings = ParserSettingsConstructor(filePath);
-    if (!settings) {
-        std::cerr << "Failed to parse XML settings." << std::endl;
-        return 1;
+    if (!parser.rootNode.modelFiles.empty()) {
+        std::cout << "\nModel Files:" << std::endl;
+        for (const auto& model : parser.rootNode.modelFiles) {
+            std::cout << "File Name: " << model.fileName << std::endl;
+        }
     }
 
-    // Print entire Parser values
-    std::cout << "Window Settings:" << std::endl;
-    std::cout << "Width: " << settings->window.width << ", Height: " << settings->window.height << std::endl;
-
-    std::cout << "\nCamera Settings:" << std::endl;
-    std::cout << "Position: (" << settings->camera.position.x << ", " << settings->camera.position.y << ", " << settings->camera.position.z << ")" << std::endl;
-    std::cout << "LookAt: (" << settings->camera.lookAt.x << ", " << settings->camera.lookAt.y << ", " << settings->camera.lookAt.z << ")" << std::endl;
-    std::cout << "Up: (" << settings->camera.up.x << ", " << settings->camera.up.y << ", " << settings->camera.up.z << ")" << std::endl;
-    std::cout << "Projection: FOV=" << settings->camera.projection.fov << ", Near=" << settings->camera.projection.near << ", Far=" << settings->camera.projection.far << std::endl;
-
-    std::cout << "\nGroup Settings:" << std::endl;
-    printGroup(settings->rootNode);
-
-    // Clean up allocated memory
-    delete settings;
-
-    return 0;
+    // Printing child group nodes
+    std::cout << "\nChild Groups:" << std::endl;
+    for (const auto& child : parser.rootNode.children) {
+        std::cout << "Transforms:" << std::endl;
+        for (const auto& transform : child.transforms) {
+            std::cout << "  Type: " << transform.type << std::endl;
+            if (transform.type == 't') {
+                std::cout << "  Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            }
+            else if (transform.type == 'r') {
+                std::cout << "  Rotation: (" << transform.angle << ", " << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            }
+        }
+        std::cout << "Model Files:" << std::endl;
+        for (const auto& model : child.modelFiles) {
+            std::cout << "  File Name: " << model.fileName << std::endl;
+        }
+    }
 }

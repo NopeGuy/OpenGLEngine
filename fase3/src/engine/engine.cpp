@@ -228,7 +228,7 @@ void keyProc(unsigned char key, int x, int y) {
 	glutPostRedisplay();
 }
 
-
+/*
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		printf("Usage: %s <path to xml file>\n", argv[0]);
@@ -285,4 +285,29 @@ int main(int argc, char *argv[]) {
 	deepDeleteList(figuras, deleteFigura);
 
 	return 1;
+}
+*/
+
+int main(int argc, char* argv[]) {
+	if (argc != 2) {
+		std::cerr << "Usage: " << argv[0] << " <xml_file_path>" << std::endl;
+		return 1;
+	}
+
+	const std::string filePath = argv[1];
+
+	// Create a Parser object and parse the XML file
+	Parser* settings = ParserSettingsConstructor(filePath);
+	if (!settings) {
+		std::cerr << "Failed to parse XML file." << std::endl;
+		return 1;
+	}
+
+	// Print the parsed values
+	print(*settings);
+
+	// Clean up memory
+	delete settings;
+
+	return 0;
 }
