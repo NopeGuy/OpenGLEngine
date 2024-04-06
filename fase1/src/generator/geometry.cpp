@@ -62,14 +62,14 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
             float z4 = radius * sinf(nextPhi) * sinf(nextTheta);
 
             // Primeiro triângulo
-            file << x1 << "," << y1 << "," << z1 << "\n";
-            file << x2 << "," << y2 << "," << z2 << "\n";
             file << x4 << "," << y4 << "," << z4 << "\n";
+            file << x2 << "," << y2 << "," << z2 << "\n";
+            file << x1 << "," << y1 << "," << z1 << "\n";
 
             // Segundo triângulo
-            file << x4 << "," << y4 << "," << z4 << "\n";
-            file << x3 << "," << y3 << "," << z3 << "\n";
             file << x1 << "," << y1 << "," << z1 << "\n";
+            file << x3 << "," << y3 << "," << z3 << "\n";
+            file << x4 << "," << y4 << "," << z4 << "\n";
         }
     }
 
@@ -236,4 +236,59 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
 
     file.close();
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
+}
+
+void generateRing(float ir, float er, int slices, const std::string& filename) {
+    fs::path outputPath = fs::current_path().parent_path() / "output";
+    if (!fs::exists(outputPath)) {
+        fs::create_directories(outputPath);
+    }
+
+    fs::path filePath = outputPath / filename;
+
+    std::ofstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
+        return;
+    }
+    if (slices <= 0)
+    {
+        std::cerr << "Não pode ter um slices <= 0" << std::endl;
+        return;
+    }
+    // Ângulo entre cada slice
+    float deltaAngle = 2 * M_PI / slices;
+
+    // Vertices 2faces * 2 triangulos * 3pontos
+    int totalVertices = 2 * 2 * 3 * slices;
+    file << totalVertices << std::endl;
+
+    // Função de vértices (para ser mais legivel)
+    auto writeVertex = [&](float angle, float radius) {
+        float x = radius * cos(angle);
+        float z = radius * sin(angle);
+        file << x << "," << 0.0 << "," << z << std::endl;
+        };
+
+    float pos = 0;
+    for (int i = 0;i < slices; i++, pos += deltaAngle) {
+        float angle = i * deltaAngle;
+        float nextAngle = (i + 1) * deltaAngle;
+
+        writeVertex(angle, ir);
+        writeVertex(angle, er);
+        writeVertex(nextAngle, ir);
+
+        writeVertex(nextAngle, ir);
+        writeVertex(angle, er);
+        writeVertex(nextAngle, er);
+
+        writeVertex(nextAngle, ir);
+        writeVertex(angle, er);
+        writeVertex(angle, ir);
+
+        writeVertex(angle, er);
+        writeVertex(nextAngle, ir); 
+        writeVertex(nextAngle, er);
+    }
 }
