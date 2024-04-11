@@ -271,7 +271,7 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
         };
 
     float pos = 0;
-    for (int i = 0;i < slices; i++, pos += deltaAngle) {
+    for (int i = 0; i < slices; i++, pos += deltaAngle) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
@@ -288,7 +288,91 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
         writeVertex(angle, ir);
 
         writeVertex(angle, er);
-        writeVertex(nextAngle, ir); 
+        writeVertex(nextAngle, ir);
         writeVertex(nextAngle, er);
     }
+}
+
+//Bezier//
+
+Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4) {
+    float aux = 1.0 - t;
+    float pt1 = aux * aux * aux;
+    float pt2 = 3 * (aux * aux) * t;
+    float pt3 = 3 * aux * (t * t);
+    float pt4 = t * t * t;
+
+    float x = (pt1 * getX(point1)) + (pt2 * getX(point2)) + (pt3 * getX(point3)) + (pt4 * getX(point4));
+    float y = (pt1 * getY(point1)) + (pt2 * getY(point2)) + (pt3 * getY(point3)) + (pt4 * getY(point4));
+    float z = (pt1 * getZ(point1)) + (pt2 * getZ(point2)) + (pt3 * getZ(point3)) + (pt4 * getZ(point4));
+
+    return newPonto(x, y, z);
+}
+
+Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& patch) {
+    Ponto res[4];
+    for (int i = 0; i < 4; ++i) {
+        res[i] = formulae(u, controlPoints[patch[4 * i]], controlPoints[patch[4 * i + 1]],
+            controlPoints[patch[4 * i + 2]], controlPoints[patch[4 * i + 3]]);
+    }
+    return formulae(v, res[0], res[1], res[2], res[3]);
+}
+
+void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFile) {
+    std::ifstream patchFile(patchFilePath);
+    std::ofstream outFile(outputFile);
+    std::string line;
+    int numberOfPatches;
+
+    if (!patchFile.is_open() || !outFile.is_open()) {
+        std::cerr << "Error opening files." << std::endl;
+        return;
+    }
+
+    // Ler o número de patches
+    std::getline(patchFile, line);
+    numberOfPatches = std::stoi(line);
+
+    std::vector<std::vector<int>> patchIndices(numberOfPatches);
+    for (int i = 0; i < numberOfPatches; ++i) {
+        std::getline(patchFile, line);
+        std::stringstream ss(line);
+        for (int j = 0; j < 16; ++j) {
+            int index;
+            ss >> index;
+            patchIndices[i].push_back(index);
+        }
+    }
+
+    // Ler os pontos de comando
+    std::getline(patchFile, line);
+    int numberOfControlPoints = std::stoi(line);
+    std::vector<Ponto> controlPoints(numberOfControlPoints);
+    for (int i = 0; i < numberOfControlPoints; ++i) {
+        std::getline(patchFile, line);
+        std::stringstream ss(line);
+        float x, y, z;
+        ss >> x >> y >> z;
+        controlPoints[i] = newPonto(x, y, z);
+    }
+
+    // Configurações de tesselação e geração de pontos de Bezier
+    int tessellation = 10;
+    float step = 1.0 / tessellation;
+    for (auto& patch : patchIndices) {
+        for (float u = 0; u < 1; u += step) {
+            for (float v = 0; v < 1; v += step) {
+                Ponto point = bezier(u, v, controlPoints, patch);
+                outFile << getX(point) << " " << getY(point) << " " << getZ(point) << std::endl;
+                deletePonto(point);
+            }
+        }
+    }
+
+    // Limpeza e fechamento dos arquivos
+    for (Ponto p : controlPoints) {
+        deletePonto(p);
+    }
+    patchFile.close();
+    outFile.close();
 }

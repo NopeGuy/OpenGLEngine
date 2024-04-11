@@ -75,7 +75,18 @@ int main(int argc, char* argv[]) {
         std::string outputFile = argv[5];
         generateRing(ir, er, slices, outputFile);
         return 0;
-    }else {
+    }
+    else if (object == "bezier") {
+        if (argc != 4) { // Corrigindo o número de argumentos esperados
+            std::cerr << "Usage for bezier: " << argv[0] << " bezier <patch_file_path> <output_file>" << std::endl;
+            return 1;
+        }
+        std::string patchFilePath = argv[2]; // lê o caminho do arquivo patch
+        std::string outputFile = argv[3]; // Mantem a definição correta de outputFile
+        generateBezierSurface(patchFilePath, outputFile);
+        return 0;
+    }
+    else {
         std::cerr << "Unknown object type." << std::endl;
         return 1;
     }

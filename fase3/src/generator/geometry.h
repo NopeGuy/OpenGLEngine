@@ -22,4 +22,7 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
 // Declaração da função generateRing
 void generateRing(float ir, float er, int slices, const std::string& filename);
 
+//Declaração da função generateBezierSurface
+void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFile);
+
 #endif // GEOMETRY_H
