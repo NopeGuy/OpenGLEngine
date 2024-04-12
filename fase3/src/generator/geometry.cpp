@@ -295,84 +295,106 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
 
 //Bezier//
 
+Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices) {
+    std::vector<Ponto> tempPoints(4);
+    // Calcular quatro pontos de Bézier para o valor 'u' usando quatro conjuntos de quatro pontos de controle
+    for (int i = 0; i < 4; i++) {
+        tempPoints[i] = formulae(u,
+            controlPoints[indices[4 * i]],
+            controlPoints[indices[4 * i + 1]],
+            controlPoints[indices[4 * i + 2]],
+            controlPoints[indices[4 * i + 3]]);
+    }
+    // Usar os quatro pontos calculados para determinar o ponto final na superfície de Bézier para 'v'
+    Ponto result = formulae(v, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
+
+    // Liberar os pontos temporários criados
+    for (int i = 0; i < 4; i++) {
+        deletePonto(tempPoints[i]);
+    }
+
+    return result;
+}
+
 Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4) {
     float aux = 1.0 - t;
     float pt1 = aux * aux * aux;
-    float pt2 = 3 * (aux * aux) * t;
-    float pt3 = 3 * aux * (t * t);
+    float pt2 = 3 * aux * aux * t;
+    float pt3 = 3 * aux * t * t;
     float pt4 = t * t * t;
 
-    float x = (pt1 * getX(point1)) + (pt2 * getX(point2)) + (pt3 * getX(point3)) + (pt4 * getX(point4));
-    float y = (pt1 * getY(point1)) + (pt2 * getY(point2)) + (pt3 * getY(point3)) + (pt4 * getY(point4));
-    float z = (pt1 * getZ(point1)) + (pt2 * getZ(point2)) + (pt3 * getZ(point3)) + (pt4 * getZ(point4));
+    float x = pt1 * getX(point1) + pt2 * getX(point2) + pt3 * getX(point3) + pt4 * getX(point4);
+    float y = pt1 * getY(point1) + pt2 * getY(point2) + pt3 * getY(point3) + pt4 * getY(point4);
+    float z = pt1 * getZ(point1) + pt2 * getZ(point2) + pt3 * getZ(point3) + pt4 * getZ(point4);
 
     return newPonto(x, y, z);
 }
 
-Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& patch) {
-    Ponto res[4];
-    for (int i = 0; i < 4; ++i) {
-        res[i] = formulae(u, controlPoints[patch[4 * i]], controlPoints[patch[4 * i + 1]],
-            controlPoints[patch[4 * i + 2]], controlPoints[patch[4 * i + 3]]);
-    }
-    return formulae(v, res[0], res[1], res[2], res[3]);
-}
-
-void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFile) {
+void generateBezierSurface(const std::string& patchFilePath, const std::string& filename, int tessellation) {
     std::ifstream patchFile(patchFilePath);
-    std::ofstream outFile(outputFile);
-    std::string line;
-    int numberOfPatches;
-
-    if (!patchFile.is_open() || !outFile.is_open()) {
-        std::cerr << "Error opening files." << std::endl;
+    std::ofstream outputFile(filename);
+    if (!patchFile.is_open() || !outputFile.is_open()) {
+        std::cerr << "Erro ao abrir arquivos!" << std::endl;
         return;
     }
 
-    // Ler o número de patches
-    std::getline(patchFile, line);
-    numberOfPatches = std::stoi(line);
-
-    std::vector<std::vector<int>> patchIndices(numberOfPatches);
-    for (int i = 0; i < numberOfPatches; ++i) {
-        std::getline(patchFile, line);
-        std::stringstream ss(line);
+    int numPatches;
+    patchFile >> numPatches;
+    std::vector<std::vector<int>> patches(numPatches);
+    for (int i = 0; i < numPatches; ++i) {
+        patches[i].resize(16);
         for (int j = 0; j < 16; ++j) {
-            int index;
-            ss >> index;
-            patchIndices[i].push_back(index);
+            patchFile >> patches[i][j];
         }
     }
 
-    // Ler os pontos de comando
-    std::getline(patchFile, line);
-    int numberOfControlPoints = std::stoi(line);
-    std::vector<Ponto> controlPoints(numberOfControlPoints);
-    for (int i = 0; i < numberOfControlPoints; ++i) {
-        std::getline(patchFile, line);
-        std::stringstream ss(line);
+    int numControlPoints;
+    patchFile >> numControlPoints;
+    std::vector<Ponto> controlPoints(numControlPoints);
+
+    for (int i = 0; i < numControlPoints; ++i) {
         float x, y, z;
-        ss >> x >> y >> z;
+        patchFile >> x >> y >> z;
         controlPoints[i] = newPonto(x, y, z);
     }
 
-    // Configurações de tesselação e geração de pontos de Bezier
-    int tessellation = 10;
-    float step = 1.0 / tessellation;
-    for (auto& patch : patchIndices) {
-        for (float u = 0; u < 1; u += step) {
-            for (float v = 0; v < 1; v += step) {
-                Ponto point = bezier(u, v, controlPoints, patch);
-                outFile << getX(point) << " " << getY(point) << " " << getZ(point) << std::endl;
-                deletePonto(point);
+    float step = 1.0f / tessellation;
+    int totalVertices = 0;
+
+    // Processando cada patch
+    for (auto& patch : patches) {
+        for (float u = 0; u < 1.0f; u += step) {
+            for (float v = 0; v < 1.0f; v += step) {
+                // Cálculo dos quatro pontos para formar dois triângulos de uma malha
+                Ponto p1 = bezier(u, v, controlPoints, patch);
+                Ponto p2 = bezier(u + step, v, controlPoints, patch);
+                Ponto p3 = bezier(u, v + step, controlPoints, patch);
+                Ponto p4 = bezier(u + step, v + step, controlPoints, patch);
+
+                // Escrevendo os vértices no arquivo
+                outputFile << getX(p1) << "," << getY(p1) << "," << getZ(p1) << "\n";
+                outputFile << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
+                outputFile << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+
+                outputFile << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
+                outputFile << getX(p4) << "," << getY(p4) << "," << getZ(p4) << "\n";
+                outputFile << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+
+                deletePonto(p1);
+                deletePonto(p2);
+                deletePonto(p3);
+                deletePonto(p4);
+
+                totalVertices += 6;  // Adicionando 6 vértices por iteração (dois triângulos)
             }
         }
     }
 
-    // Limpeza e fechamento dos arquivos
-    for (Ponto p : controlPoints) {
-        deletePonto(p);
-    }
+    // Escreve o total de vértices no início do arquivo
+    outputFile.seekp(0, std::ios::beg);
+    outputFile << totalVertices << "\n";
+
+    // Fechando os arquivos
     patchFile.close();
-    outFile.close();
+    outputFile.close();
 }

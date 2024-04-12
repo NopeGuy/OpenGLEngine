@@ -23,6 +23,9 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
 void generateRing(float ir, float er, int slices, const std::string& filename);
 
 //Declaração da função generateBezierSurface
-void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFile);
+Ponto bezier(float u, float v, Ponto* controlPoints, int* indices);
+Ponto readPonto(std::istream& stream);
+Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4);
+void generateBezierSurface(const std::string& patchFilePath, const std::string& filename, int tessellation);
 
 #endif // GEOMETRY_H

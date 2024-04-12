@@ -37,7 +37,7 @@ add_library(
 target_link_libraries(parser_lib tinyXML)
 
 # Associa a biblioteca das figuras e dos pontos aos executáveis
-# target_link_libraries(generator.exe utils_lib)
+target_link_libraries(generator.exe utils_lib)  # Vincula a utils_lib com generator.exe
 target_link_libraries(engine.exe tinyXML utils_lib parser_lib)
 
 find_package(OpenGL REQUIRED)
