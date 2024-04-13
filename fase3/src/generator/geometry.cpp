@@ -14,6 +14,7 @@
 
 #include "../utils/ponto.hpp"
 #include <fstream>
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -297,7 +298,6 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
 
 Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices) {
     std::vector<Ponto> tempPoints(4);
-    // Calcular quatro pontos de Bézier para o valor 'u' usando quatro conjuntos de quatro pontos de controle
     for (int i = 0; i < 4; i++) {
         tempPoints[i] = formulae(u,
             controlPoints[indices[4 * i]],
@@ -305,14 +305,10 @@ Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<in
             controlPoints[indices[4 * i + 2]],
             controlPoints[indices[4 * i + 3]]);
     }
-    // Usar os quatro pontos calculados para determinar o ponto final na superfície de Bézier para 'v'
     Ponto result = formulae(v, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
-
-    // Liberar os pontos temporários criados
     for (int i = 0; i < 4; i++) {
         deletePonto(tempPoints[i]);
     }
-
     return result;
 }
 
@@ -322,79 +318,91 @@ Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4) 
     float pt2 = 3 * aux * aux * t;
     float pt3 = 3 * aux * t * t;
     float pt4 = t * t * t;
-
     float x = pt1 * getX(point1) + pt2 * getX(point2) + pt3 * getX(point3) + pt4 * getX(point4);
     float y = pt1 * getY(point1) + pt2 * getY(point2) + pt3 * getY(point3) + pt4 * getY(point4);
     float z = pt1 * getZ(point1) + pt2 * getZ(point2) + pt3 * getZ(point3) + pt4 * getZ(point4);
-
     return newPonto(x, y, z);
 }
 
-void generateBezierSurface(const std::string& patchFilePath, const std::string& filename, int tessellation) {
+void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFileName, int tessellation) {
+    namespace fs = std::filesystem;
+
+    // Construindo o caminho completo para o arquivo de saída na pasta 'output'
+    fs::path outputFilePath = fs::current_path() / "../output" / outputFileName;
+
     std::ifstream patchFile(patchFilePath);
-    std::ofstream outputFile(filename);
-    if (!patchFile.is_open() || !outputFile.is_open()) {
-        std::cerr << "Erro ao abrir arquivos!" << std::endl;
+    if (!patchFile.is_open()) {
+        std::cerr << "Erro ao abrir arquivo de entrada!" << std::endl;
         return;
     }
 
-    int numPatches;
-    patchFile >> numPatches;
-    std::vector<std::vector<int>> patches(numPatches);
-    for (int i = 0; i < numPatches; ++i) {
-        patches[i].resize(16);
-        for (int j = 0; j < 16; ++j) {
-            patchFile >> patches[i][j];
-        }
+    std::ofstream outputFile(outputFilePath);
+    if (!outputFile.is_open()) {
+        std::cerr << "Erro ao abrir arquivo de saída no caminho: " << outputFilePath << std::endl;
+        return;
     }
 
-    int numControlPoints;
-    patchFile >> numControlPoints;
-    std::vector<Ponto> controlPoints(numControlPoints);
+    std::string line;
+    getline(patchFile, line);
+    int numPatches = std::stoi(line);
 
+    std::vector<std::vector<int>> patches(numPatches);
+    for (int i = 0; i < numPatches; ++i) {
+        getline(patchFile, line);
+        std::istringstream iss(line);
+        std::vector<int> indices(16);
+        for (int j = 0; j < 16; ++j) {
+            iss >> indices[j];
+            if (iss.peek() == ',')
+                iss.ignore();
+        }
+        patches[i] = indices;
+    }
+
+    getline(patchFile, line);
+    int numControlPoints = std::stoi(line);
+
+    std::vector<Ponto> controlPoints(numControlPoints);
     for (int i = 0; i < numControlPoints; ++i) {
         float x, y, z;
-        patchFile >> x >> y >> z;
+        getline(patchFile, line);
+        std::replace(line.begin(), line.end(), ',', ' ');
+        std::istringstream iss(line);
+        iss >> x >> y >> z;
         controlPoints[i] = newPonto(x, y, z);
     }
 
+    std::stringstream ss;
     float step = 1.0f / tessellation;
     int totalVertices = 0;
 
-    // Processando cada patch
     for (auto& patch : patches) {
         for (float u = 0; u < 1.0f; u += step) {
             for (float v = 0; v < 1.0f; v += step) {
-                // Cálculo dos quatro pontos para formar dois triângulos de uma malha
                 Ponto p1 = bezier(u, v, controlPoints, patch);
                 Ponto p2 = bezier(u + step, v, controlPoints, patch);
                 Ponto p3 = bezier(u, v + step, controlPoints, patch);
                 Ponto p4 = bezier(u + step, v + step, controlPoints, patch);
 
-                // Escrevendo os vértices no arquivo
-                outputFile << getX(p1) << "," << getY(p1) << "," << getZ(p1) << "\n";
-                outputFile << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
-                outputFile << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
-
-                outputFile << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
-                outputFile << getX(p4) << "," << getY(p4) << "," << getZ(p4) << "\n";
-                outputFile << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+                ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << "\n";
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
+                ss << getX(p4) << "," << getY(p4) << "," << getZ(p4) << "\n";
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
 
                 deletePonto(p1);
                 deletePonto(p2);
                 deletePonto(p3);
                 deletePonto(p4);
 
-                totalVertices += 6;  // Adicionando 6 vértices por iteração (dois triângulos)
+                totalVertices += 6;
             }
         }
     }
 
-    // Escreve o total de vértices no início do arquivo
-    outputFile.seekp(0, std::ios::beg);
-    outputFile << totalVertices << "\n";
-
-    // Fechando os arquivos
+    outputFile << totalVertices << "\n" << ss.str();
     patchFile.close();
     outputFile.close();
+    std::cout << "Arquivo '" << outputFileName << "' criado com sucesso em: " << outputFilePath << std::endl;
 }
