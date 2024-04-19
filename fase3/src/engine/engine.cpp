@@ -12,8 +12,20 @@
 #include "../utils/list.hpp"
 #include "../tinyXML/tinyxml2.h"
 #include "../utils/parser.hpp"
+#include <vector>
 
 using namespace std;
+
+#define NOW ((1.0f*glutGet(GLUT_ELAPSED_TIME))/1000.0f)
+float init_time = 0.0f;
+
+GLuint verticeCount;
+GLuint vertices = 0;
+
+// VBO's
+GLuint* buffers = NULL; // temos um buffer para cada figura
+vector<unsigned int> buffersSizes; // aqui guardamos o tamanho de cada buffer de cada figura
+unsigned int figCount = 0; // total de figuras existentes no ficheiro de configuração.
 
 // Códigos de cores
 #define RED 1.0f,0.0f,0.0f
@@ -39,7 +51,6 @@ float upz = 0.0f;
 float fov = 0.0f;
 float near = 0.0f;
 float far = 0.0f;
-
 
 // Window Settings
 int width = 0;
@@ -91,24 +102,67 @@ void drawFiguras(List figs){
 	}
 }
 
-void drawGroups(const Group* group)
-{
-	if (group != nullptr)
-	{
-		glPushMatrix();
-		int i = 0;
+// Function to execute transformations
+void executeTransformations(const Transform& transform) {
+	float x = transform.x;
+	float y = transform.y;
+	float z = transform.z;
+	char tr_type = transform.type;
+	if (tr_type == 'r') { // Rotation
+		float r_angle = transform.angle;
+		float r_time = transform.time;
+		if (r_time > 0.0f) {
+			r_angle = ((NOW - init_time) * 360.0f) / r_time;
+		}
+		glRotatef(r_angle, x, y, z);
+	}
+	else if (tr_type == 't') { // Translation
+		float t_time = transform.time;
+		if (t_time > 0.0f) {
+			// Handle translation animation
+		}
+		else {
+			glTranslatef(x, y, z);
+		}
+	}
+	else if (tr_type == 's') { // Scale
+		glScalef(x, y, z); // Fix: Pass x, y, z as arguments
+	}
+}
+
+
+// Desenha os eixos, caso a flag esteja ativa.
+void drawEixos() {
+	glBegin(GL_LINES);
+	// X axis in red
+	glColor3f(RED);
+	glVertex3f(-100.0f, 0.0f, 0.0f);
+	glVertex3f(100.0f, 0.0f, 0.0f);
+	// Y Axis in Green
+	glColor3f(GREEN);
+	glVertex3f(0.0f, -100.0f, 0.0f);
+	glVertex3f(0.0f, 100.0f, 0.0f);
+	// Z Axis in Blue
+	glColor3f(BLUE);
+	glVertex3f(0.0f, 0.0f, -100.0f);
+	glVertex3f(0.0f, 0.0f, 100.0f);
+	glColor3f(WHITE);
+	glEnd();
+}
+
+void drawTeapot() {
+	glPushMatrix();
+	glColor3f(WHITE);
+	glTranslatef(-5, 0, 0);
+	glutWireTeapot(1);
+	glPopMatrix();
+}
+
+void drawGroups(const Group* group) {
+	if (group != nullptr) {
+		glPushMatrix(); // Push the current matrix onto the stack
 		for (const auto& transform : group->transforms) {
-			switch (transform.type) {
-			case 't': // Translate
-				glTranslatef(transform.x, transform.y, transform.z);
-				break;
-			case 'r': // Rotate
-				glRotatef(transform.angle, transform.x, transform.y, transform.z);
-				break;
-			case 's': // Scale
-				glScalef(transform.x, transform.y, transform.z);
-				break;
-			}
+			executeTransformations(transform);
 		}
 
 		for (const auto& modelFile : group->modelFiles) {
@@ -121,50 +175,37 @@ void drawGroups(const Group* group)
 		glEnd();
 
 		cleanList(figuras, deleteFigura);
-		
 
-		// Renderizar recursivamente os child groups
+		// Render child groups
 		for (const auto& child : group->children) {
 			drawGroups(&child);
 		}
 
-		glPopMatrix();
+		glPopMatrix(); // Restore the previous matrix
 	}
 }
 
 void renderScene(void) {
-
-	// clear buffers
+	// Clear buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// set the camera
+	// Set the camera
 	glLoadIdentity();
-	gluLookAt(radius*cos(beta_)*sin(alpha), radius*sin(beta_), radius*cos(beta_)*cos(alpha),
-		      lookAtx,lookAty,lookAtz,
-			  upx,upy,upz);
+	gluLookAt(camx, camy, camz, lookAtx, lookAty, lookAtz, upx, upy, upz);
 
-	// linhas dos eixos
+	// Draw axes
 	glBegin(GL_LINES);
-		// X axis in red
-		glColor3f(1.0f, 0.0f, 0.0f);
-		glVertex3f(-200.0f, 0.0f, 0.0f);
-		glVertex3f( 200.0f, 0.0f, 0.0f);
-		// Y Axis in Green
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex3f(0.0f,-200.0f, 0.0f);
-		glVertex3f(0.0f, 200.0f, 0.0f);
-		// Z Axis in Blue
-		glColor3f(0.0f, 0.0f, 1.0f);
-		glVertex3f(0.0f, 0.0f,-200.0f);
-		glVertex3f(0.0f, 0.0f, 200.0f);
+	/* Draw axes lines */
 	glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
-
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
 
+	// Draw eixos
+	drawEixos();
+	// Apply transformations and draw groups
 	drawGroups(&settings->rootNode);
-	
+
 	// End of frame
 	glutSwapBuffers();
 }
@@ -225,6 +266,9 @@ void keyProc(unsigned char key, int x, int y) {
 		default:
 			break;
 	}
+	camx = radius * sin(alpha) * cos(beta_);
+	camy = radius * sin(beta_);
+	camz = radius * cos(alpha) * cos(beta_);
 	glutPostRedisplay();
 }
 
@@ -267,7 +311,7 @@ int main(int argc, char *argv[]) {
 	// Required callback registry 
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
-
+	glutIdleFunc(renderScene);
 	
 	// put here the registration of the keyboard callbacks (por enquanto só mexem na camara como forma de debug)
 	glutKeyboardFunc(keyProc);
