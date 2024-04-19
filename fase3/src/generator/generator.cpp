@@ -75,13 +75,14 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     else if (object == "bezier") {
-        if (argc != 4) { // Corrigindo o número de argumentos esperados
-            std::cerr << "Usage for bezier: " << argv[0] << " bezier <patch_file_path> <output_file>" << std::endl;
+        if (argc != 5) { // Corrigindo o número de argumentos esperados
+            std::cerr << "Usage for bezier: " << argv[0] << " bezier <patch_file_path> <output_file> <tessellation_level>" << std::endl;
             return 1;
         }
         std::string patchFilePath = argv[2]; // lê o caminho do arquivo patch
         std::string outputFile = argv[3]; // Mantem a definição correta de outputFile
-        generateBezierSurface(patchFilePath, outputFile, 10);
+        std::string tessellation = argv[4];
+        generateBezierSurface(patchFilePath, outputFile, stoi(tessellation));
         return 0;
     }
     else {
