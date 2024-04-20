@@ -70,6 +70,7 @@ List figuras = NULL;
 
 
 
+
 void changeSize(int w, int h) {
 
 	// Prevent a divide by zero, when window is too short
@@ -96,34 +97,40 @@ void changeSize(int w, int h) {
 }
 
 // fill lists
+
 void fillList(const Group* group)
 {
 	if (group != nullptr)
 	{
 		int modelLength = group->modelFiles.size();
-		for (int i = 0; i < modelLength; i++) {
-			const char* fileChar = group->modelFiles[i].fileName.c_str();
-			addValueList(figuras, fileToFigura(fileChar));
-		}
 
+		for (int i = 0; i < modelLength; i++) {
+			const char* fileChar = group->modelFiles.at(i).fileName.c_str();
+			printf("\n boda: %s \n" , fileChar);
+			addValueList(figuras, fileToFigura(fileChar));
+			printf("Model file: %s\n", fileChar);
+		}
 		for (const auto& child : group->children)
 			fillList(&child);
 	}
 }
 
+
+void printModelsFromSettings(const Parser* settings) {
+	for (const auto& model : settings->rootNode.modelFiles) {
+		printf("Model file: %s\n", model.fileName.c_str());
+	}
+}
+
 void importFiguras(List figs) {
 	figCount = getListLength(figs);
-	GLuint Itemp;
-
-	// Generate buffer object names
-	glGenBuffers(figCount, &Itemp);
-
-	bufferId[figCount - 1] = Itemp;
-
+	printf("Figuras: %d\n", figCount);
 
 
 	// Iterate through the list of figures and create buffers
 	for (unsigned long i = 0; i < getListLength(figs); i++) {
+		printf("Figura %lu\n", i);
+		glGenBuffers(i+1, &bufferId[i]);
 		Figura fig = (Figura)getListElemAt(figs, i);
 		List figPontos = getPontos(fig);
 		vector<float> vVertices;
@@ -134,10 +141,10 @@ void importFiguras(List figs) {
 			vVertices.push_back(getX(point));
 			vVertices.push_back(getY(point));
 			vVertices.push_back(getZ(point));
-			
 		}
 		// Calculate the number of vertices
 		info[i] = (vVertices.size() / 3);
+		printf("Vertices: %d\n", info[i]);
 
 		// Bind the buffer and fill it with data
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
@@ -147,13 +154,11 @@ void importFiguras(List figs) {
 
 
 void draw() {
-
 	for (unsigned long i = 0; i < figCount; i++) {
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
 	}
- 
 }
 
 // Function to execute transformations
@@ -220,12 +225,7 @@ void drawGroups(const Group* group) {
 		}
 
 
-		/*for (const auto& modelFile : group->modelFiles) {
-			const char* fileChar = modelFile.fileName.c_str();
-			addValueList(figuras, fileToFigura(fileChar));
-		}*/
-
-		//cleanList(figuras, deleteFigura);
+		draw(); // Draw the figure(s
 
 		// Render child groups
 		for (const auto& child : group->children) {
@@ -249,7 +249,7 @@ void renderScene(void) {
 
 	// Draw eixos
 	drawEixos();
-	draw();
+	drawGroups(&settings->rootNode);
 	// Apply transformations and draw groups
 	//drawGroups(&settings->rootNode);
 
@@ -346,8 +346,7 @@ int main(int argc, char *argv[]) {
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius); 
 
-
-
+	fillList(&settings->rootNode);
 
 	// init GLUT and the window
 	glutInit(&argc, argv);
@@ -366,16 +365,9 @@ int main(int argc, char *argv[]) {
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	// Import figures
-	fillList(&settings->rootNode);
-
 	importFiguras(figuras);
 
-	// add figures to figuras list
-	/*drawGroups(&settings->rootNode);
-	for (const auto& group : settings->rootNode.children) {
-		drawGroups(&group);
-	}*/
+//	drawGroups(&settings->rootNode);
 
 	// OpenGL settings
 	glEnable(GL_DEPTH_TEST);
