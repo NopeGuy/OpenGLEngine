@@ -52,6 +52,7 @@ struct Transform {
 
 struct ModelFile {
     std::string fileName;
+    std::vector<float> vbo;
 };
 
 struct Group {

@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
-#include <GLUT/glew.h>
 #else
-#include <GL/glew.h>
 #include <GL/glut.h>
 #endif
 
@@ -21,15 +19,14 @@ using namespace std;
 #define NOW ((1.0f*glutGet(GLUT_ELAPSED_TIME))/1000.0f)
 float init_time = 0.0f;
 
-
 GLuint verticeCount;
 GLuint vertices = 0;
 
 // VBO's
 GLuint* buffers = NULL; // temos um buffer para cada figura
-int info[100]; // aqui guardamos o tamanho de cada buffer de cada figura
+vector<unsigned int> info; // aqui guardamos o tamanho de cada buffer de cada figura
 unsigned int figCount = 0; // total de figuras existentes no ficheiro de configuração.
-GLuint bufferId[100]; // buffer id
+GLuint bufferId[];
 
 // Códigos de cores
 #define RED 1.0f,0.0f,0.0f
@@ -95,65 +92,39 @@ void changeSize(int w, int h) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
-// fill lists
-void fillList(const Group* group)
-{
-	if (group != nullptr)
-	{
-		int modelLength = group->modelFiles.size();
-		for (int i = 0; i < modelLength; i++) {
-			const char* fileChar = group->modelFiles[i].fileName.c_str();
-			addValueList(figuras, fileToFigura(fileChar));
-		}
-
-		for (const auto& child : group->children)
-			fillList(&child);
-	}
-}
-
-void importFiguras(List figs) {
-	figCount = getListLength(figs);
-	GLuint Itemp;
-
-	// Generate buffer object names
-	glGenBuffers(figCount, &Itemp);
-
-	bufferId[figCount - 1] = Itemp;
-
-
-
-	// Iterate through the list of figures and create buffers
-	for (unsigned long i = 0; i < getListLength(figs); i++) {
-		Figura fig = (Figura)getListElemAt(figs, i);
+//mudar para importFiguras
+void importFiguras(List figs){
+	for(unsigned long i = 0; i < getListLength(figs); i++){ // Para cada figura
+		glGenBuffers(i+1, &Itemp);
+		bufferId[i] = Itemp;
+		Figura fig = (Figura)getListElemAt(figs,i);
 		List figPontos = getPontos(fig);
-		vector<float> vVertices;
-
-		// Iterate through the list of points in the figure and populate vVertices
-		for (unsigned long j = 0; j < getListLength(figPontos); j++) {
-			Ponto point = (Ponto)getListElemAt(figPontos, j);
+		for(unsigned long j = 0; j < getListLength(figPontos); j++){
+			Ponto point = (Ponto)getListElemAt(figPontos,j);
+			//
 			vVertices.push_back(getX(point));
-			vVertices.push_back(getY(point));
-			vVertices.push_back(getZ(point));
-			
+			vVertices.push_back(getY(point)); 
+			vVertices.push_back( getZ(point));
 		}
-		// Calculate the number of vertices
-		info[i] = (vVertices.size() / 3);
+		// vetor ta cheio de floats organizados Vx , Vy , Vz, V1x , V1y , V1z, 
+		// calcular o tamanho do buffer
+		info.push_back(vVertices.size()/3);
+		glBindBuffer(GL_ARRAY_BUFFER, bufferId); // dzr a grafica em que buffer vou mexer e de que tipo
 
-		// Bind the buffer and fill it with data
-		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
-		glBufferData(GL_ARRAY_BUFFER, vVertices.size() * sizeof(float), vVertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, // tipo do buffer, s� � relevante na altura do desenho
+			sizeof(float) * vVertices.size(), // tamanho do vector em bytes
+			vVertices.data(), // os dados do array associado ao vector
+			GL_STATIC_DRAW); // indicativo da utiliza��o (est�tico e para desenho)
+
 	}
 }
-
 
 void draw() {
-
-	for (unsigned long i = 0; i < figCount; i++) {
-		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
+	for (unsigned long i = 0; i < info.size(); i++) {
+		glBindBuffer(GL_ARRAY_BUFFER, buffers[i]);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
 	}
- 
 }
 
 // Function to execute transformations
@@ -219,13 +190,17 @@ void drawGroups(const Group* group) {
 			executeTransformations(transform);
 		}
 
-
-		/*for (const auto& modelFile : group->modelFiles) {
+		for (const auto& modelFile : group->modelFiles) {
 			const char* fileChar = modelFile.fileName.c_str();
 			addValueList(figuras, fileToFigura(fileChar));
-		}*/
+		}
 
-		//cleanList(figuras, deleteFigura);
+		glBegin(GL_TRIANGLES);
+		draw(figuras);
+
+		glEnd();
+
+		cleanList(figuras, deleteFigura);
 
 		// Render child groups
 		for (const auto& child : group->children) {
@@ -244,14 +219,18 @@ void renderScene(void) {
 	glLoadIdentity();
 	gluLookAt(camx, camy, camz, lookAtx, lookAty, lookAtz, upx, upy, upz);
 
+	// Draw axes
+	glBegin(GL_LINES);
+	/* Draw axes lines */
+	glEnd();
+
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
 
 	// Draw eixos
 	drawEixos();
-	draw();
 	// Apply transformations and draw groups
-	//drawGroups(&settings->rootNode);
+	drawGroups(&settings->rootNode);
 
 	// End of frame
 	glutSwapBuffers();
@@ -346,36 +325,24 @@ int main(int argc, char *argv[]) {
 	alpha   = acos(camz/sqrt(camx*camx + camz*camz));
 	beta_   = asin(camy/radius); 
 
-
-
-
+	importFiguras(settings->figuras);
+	
 	// init GLUT and the window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH|GLUT_DOUBLE|GLUT_RGBA);
 	glutInitWindowPosition(100,100);
 	glutInitWindowSize(800,800);
 	glutCreateWindow("Engine");
-	glewInit();
+		
 	// Required callback registry 
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
 	glutIdleFunc(renderScene);
+	
 	// put here the registration of the keyboard callbacks (por enquanto só mexem na camara como forma de debug)
 	glutKeyboardFunc(keyProc);
 	glutSpecialFunc(specKeyProc);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-
-	// Import figures
-	fillList(&settings->rootNode);
-
-	importFiguras(figuras);
-
-	// add figures to figuras list
-	/*drawGroups(&settings->rootNode);
-	for (const auto& group : settings->rootNode.children) {
-		drawGroups(&group);
-	}*/
 
 	// OpenGL settings
 	glEnable(GL_DEPTH_TEST);
