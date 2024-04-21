@@ -347,6 +347,15 @@ void keyProc(unsigned char key, int x, int y) {
 			mode = GL_POINT;
 			break;
 
+		case ('t'): {
+			radius -= 1.0f;
+			break;
+		}
+
+		case ('y'): {
+			radius += 1.0f;
+			break;
+		}
 		default:
 			break;
 	}
