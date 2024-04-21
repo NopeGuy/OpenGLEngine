@@ -25,6 +25,8 @@ float init_time = 0.0f;
 
 GLuint verticeCount;
 GLuint vertices = 0;
+static int startpos = 0;
+static int endpos = 0;
 
 // VBO's
 GLuint* buffers = NULL; // temos um buffer para cada figura
@@ -107,29 +109,19 @@ void fillList(const Group* group)
 
 		for (int i = 0; i < modelLength; i++) {
 			const char* fileChar = group->modelFiles.at(i).fileName.c_str();
-			printf("\n boda: %s \n" , fileChar);
 			addValueList(figuras, fileToFigura(fileChar));
-			printf("Model file: %s\n", fileChar);
 		}
 		for (const auto& child : group->children)
 			fillList(&child);
 	}
 }
 
-void printModelsFromSettings(const Parser* settings) {
-	for (const auto& model : settings->rootNode.modelFiles) {
-		printf("Model file: %s\n", model.fileName.c_str());
-	}
-}
-
 void importFiguras(List figs) {
 	figCount = getListLength(figs);
-	printf("Figuras: %d\n", figCount);
 
 
 	// Iterate through the list of figures and create buffers
 	for (unsigned long i = 0; i < getListLength(figs); i++) {
-		printf("Figura %lu\n", i);
 		glGenBuffers(i+1, &bufferId[i]);
 		Figura fig = (Figura)getListElemAt(figs, i);
 		List figPontos = getPontos(fig);
@@ -144,7 +136,6 @@ void importFiguras(List figs) {
 		}
 		// Calculate the number of vertices
 		info[i] = (vVertices.size() / 3);
-		printf("Vertices: %d\n", info[i]);
 
 		// Bind the buffer and fill it with data
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
@@ -159,6 +150,12 @@ void drawFigures(int startpos, int endpos) {
 		glVertexPointer(3, GL_FLOAT, 0, 0);
 		//glPolygonMode(GL_FRONT, GL_FILL);
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
+	}
+	if (endpos == figCount) {
+		startpos = 0;
+	}
+	else {
+		startpos = endpos;
 	}
 }
 
@@ -255,8 +252,6 @@ void drawTeapot() {
 }
 
 void drawGroups(const Group* group) {
-	int startpos = 0;
-	int endpos = 0;
 	if (group != nullptr) {
 		glPushMatrix(); // Push the current matrix onto the stack
 		for (const auto& transform : group->transforms) {
@@ -272,9 +267,12 @@ void drawGroups(const Group* group) {
 			startpos = endpos;
 			drawGroups(&child);
 		}
-
+			if (group->children.size() == 0) {
+		startpos = 0;
+	}
 		glPopMatrix(); // Restore the previous matrix
 	}
+
 }
 
 void renderScene(void) {

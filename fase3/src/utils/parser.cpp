@@ -140,14 +140,12 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
             else if (transform.type == 'r') {
                 const char* timeAttr = t->Attribute("time");
                 if (timeAttr) {
-                    printf("angle: %s\n", t->Attribute("angle"));
                     transform.time = atof(timeAttr);
                     transform.x = atof(t->Attribute("x"));
                     transform.y = atof(t->Attribute("y"));
                     transform.z = atof(t->Attribute("z"));
                 }
                 else {
-                    printf("angle: %s\n", t->Attribute("angle"));
                     transform.time = 0.0f;
                     transform.angle = atof(t->Attribute("angle"));
                     transform.x = atof(t->Attribute("x"));
