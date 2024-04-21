@@ -18,6 +18,8 @@ add_library(
     ./src/utils/figura.hpp
     ./src/utils/list.cpp
     ./src/utils/list.hpp
+    ./src/utils/curve.cpp
+    ./src/utils/curve.hpp
 )
 
 # Biblioteca de parsing de XML
