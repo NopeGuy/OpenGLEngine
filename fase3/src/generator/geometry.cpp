@@ -14,6 +14,7 @@
 
 #include "../utils/ponto.hpp"
 #include <fstream>
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -62,14 +63,14 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
             float z4 = radius * sinf(nextPhi) * sinf(nextTheta);
 
             // Primeiro triângulo
-            file << x1 << "," << y1 << "," << z1 << "\n";
-            file << x2 << "," << y2 << "," << z2 << "\n";
             file << x4 << "," << y4 << "," << z4 << "\n";
+            file << x2 << "," << y2 << "," << z2 << "\n";
+            file << x1 << "," << y1 << "," << z1 << "\n";
 
             // Segundo triângulo
-            file << x4 << "," << y4 << "," << z4 << "\n";
-            file << x3 << "," << y3 << "," << z3 << "\n";
             file << x1 << "," << y1 << "," << z1 << "\n";
+            file << x3 << "," << y3 << "," << z3 << "\n";
+            file << x4 << "," << y4 << "," << z4 << "\n";
         }
     }
 
@@ -271,7 +272,7 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
         };
 
     float pos = 0;
-    for (int i = 0;i < slices; i++, pos += deltaAngle) {
+    for (int i = 0; i < slices; i++, pos += deltaAngle) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
@@ -288,7 +289,120 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
         writeVertex(angle, ir);
 
         writeVertex(angle, er);
-        writeVertex(nextAngle, ir); 
+        writeVertex(nextAngle, ir);
         writeVertex(nextAngle, er);
     }
+}
+
+//Bezier//
+
+Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices) {
+    std::vector<Ponto> tempPoints(4);
+    for (int i = 0; i < 4; i++) {
+        tempPoints[i] = formulae(u,
+            controlPoints[indices[4 * i]],
+            controlPoints[indices[4 * i + 1]],
+            controlPoints[indices[4 * i + 2]],
+            controlPoints[indices[4 * i + 3]]);
+    }
+    Ponto result = formulae(v, tempPoints[0], tempPoints[1], tempPoints[2], tempPoints[3]);
+    for (int i = 0; i < 4; i++) {
+        deletePonto(tempPoints[i]);
+    }
+    return result;
+}
+
+Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4) {
+    float aux = 1.0 - t;
+    float pt1 = aux * aux * aux;
+    float pt2 = 3 * aux * aux * t;
+    float pt3 = 3 * aux * t * t;
+    float pt4 = t * t * t;
+    float x = pt1 * getX(point1) + pt2 * getX(point2) + pt3 * getX(point3) + pt4 * getX(point4);
+    float y = pt1 * getY(point1) + pt2 * getY(point2) + pt3 * getY(point3) + pt4 * getY(point4);
+    float z = pt1 * getZ(point1) + pt2 * getZ(point2) + pt3 * getZ(point3) + pt4 * getZ(point4);
+    return newPonto(x, y, z);
+}
+
+void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFileName, int tessellation) {
+    namespace fs = std::filesystem;
+
+    // Construindo o caminho completo para o arquivo de saída na pasta 'output'
+    fs::path outputFilePath = fs::current_path() / "../output" / outputFileName;
+
+    std::ifstream patchFile(patchFilePath);
+    if (!patchFile.is_open()) {
+        std::cerr << "Erro ao abrir arquivo de entrada!" << std::endl;
+        return;
+    }
+
+    std::ofstream outputFile(outputFilePath);
+    if (!outputFile.is_open()) {
+        std::cerr << "Erro ao abrir arquivo de saída no caminho: " << outputFilePath << std::endl;
+        return;
+    }
+
+    std::string line;
+    getline(patchFile, line);
+    int numPatches = std::stoi(line);
+
+    std::vector<std::vector<int>> patches(numPatches);
+    for (int i = 0; i < numPatches; ++i) {
+        getline(patchFile, line);
+        std::istringstream iss(line);
+        std::vector<int> indices(16);
+        for (int j = 0; j < 16; ++j) {
+            iss >> indices[j];
+            if (iss.peek() == ',')
+                iss.ignore();
+        }
+        patches[i] = indices;
+    }
+
+    getline(patchFile, line);
+    int numControlPoints = std::stoi(line);
+
+    std::vector<Ponto> controlPoints(numControlPoints);
+    for (int i = 0; i < numControlPoints; ++i) {
+        float x, y, z;
+        getline(patchFile, line);
+        std::replace(line.begin(), line.end(), ',', ' ');
+        std::istringstream iss(line);
+        iss >> x >> y >> z;
+        controlPoints[i] = newPonto(x, y, z);
+    }
+
+    std::stringstream ss;
+    float step = 1.0f / tessellation;
+    int totalVertices = 0;
+
+    for (auto& patch : patches) {
+        for (float u = 0; u < 1.0f; u += step) {
+            for (float v = 0; v < 1.0f; v += step) {
+                Ponto p1 = bezier(u, v, controlPoints, patch);
+                Ponto p2 = bezier(u + step, v, controlPoints, patch);
+                Ponto p3 = bezier(u, v + step, controlPoints, patch);
+                Ponto p4 = bezier(u + step, v + step, controlPoints, patch);
+
+                ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << "\n";
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
+                ss << getX(p4) << "," << getY(p4) << "," << getZ(p4) << "\n";
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+
+                deletePonto(p1);
+                deletePonto(p2);
+                deletePonto(p3);
+                deletePonto(p4);
+
+                totalVertices += 6;
+            }
+        }
+    }
+
+    outputFile << totalVertices << "\n" << ss.str();
+    patchFile.close();
+    outputFile.close();
+    std::cout << "Arquivo '" << outputFileName << "' criado com sucesso em: " << outputFilePath << std::endl;
 }
