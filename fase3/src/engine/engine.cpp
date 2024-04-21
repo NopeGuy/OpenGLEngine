@@ -191,9 +191,31 @@ void executeTransformations(const Transform& transform) {
 			float t = fmod(NOW - init_time, t_time) / t_time;
 			float pos[3];
 			float deriv[3];
-			getGlobalCatmullRomPoint(t, px, py, pz, pos, deriv);
-			renderCatmullRomCurve(px, py, pz);
+			GlobalCatRomPoint(t, px, py, pz, pos, deriv);
+			displayCatmullRom(px, py, pz);
 			glTranslatef(pos[0], pos[1], pos[2]);
+
+			if (transform.align == true) {
+			float rot[16];
+			float* X = deriv;
+			float Y[3] = { 0,1,0 }; // Variável que define a normal do objeto
+			float Z[3];
+
+			// Z = X x Y
+			vetxvet(X, Y, Z);
+			// Y = Z x X
+			vetxvet(Z, X, Y);
+
+			// Normaliza os vetores
+			normalize(X);
+			normalize(Y);
+			normalize(Z);
+
+			buildRotMatrix(X, Y, Z, rot);
+
+			glMultMatrixf(rot);
+
+			}
 		}
 		else {
 			glTranslatef(x, y, z);
@@ -242,6 +264,7 @@ void drawGroups(const Group* group) {
 		}
 
 		endpos = startpos + group->modelFiles.size();
+		//printf(group->modelFiles.size() > 0 ? "Drawing %d model(s)\n" : "No models to draw\n", group->modelFiles.size());
 		drawFigures(startpos, endpos); // Draw the figure(s)
 
 		// Render child groups
