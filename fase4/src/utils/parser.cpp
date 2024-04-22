@@ -134,6 +134,7 @@ struct Group {
 struct Parser {
     Window window;
     Camera camera;
+    Lights lights;
     Group rootNode;
 };
 
@@ -180,6 +181,42 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, Camera& camera) {
         exit(1);
     }
 }
+
+void parseLights(tinyxml2::XMLElement* lightsElement, Lights& lights) {
+    if (lightsElement) {
+        tinyxml2::XMLElement* lightElement = lightsElement->FirstChildElement("light");
+        while (lightElement) {
+            Light light;
+            const char* type = lightElement->Attribute("type");
+            if (type)
+                light.type = type;
+            
+            std::string typeStr = type ? type : "";
+            
+            if (typeStr == "point") {
+                light.pointLight.position.x = lightElement->FloatAttribute("posX");
+                light.pointLight.position.y = lightElement->FloatAttribute("posY");
+                light.pointLight.position.z = lightElement->FloatAttribute("posZ");
+            } else if (typeStr == "directional") {
+                light.directionalLight.direction.x = lightElement->FloatAttribute("dirX");
+                light.directionalLight.direction.y = lightElement->FloatAttribute("dirY");
+                light.directionalLight.direction.z = lightElement->FloatAttribute("dirZ");
+            } else if (typeStr == "spotlight") {
+                light.spotLight.position.x = lightElement->FloatAttribute("posX");
+                light.spotLight.position.y = lightElement->FloatAttribute("posY");
+                light.spotLight.position.z = lightElement->FloatAttribute("posZ");
+                light.spotLight.direction.x = lightElement->FloatAttribute("dirX");
+                light.spotLight.direction.y = lightElement->FloatAttribute("dirY");
+                light.spotLight.direction.z = lightElement->FloatAttribute("dirZ");
+                light.spotLight.cutoff = lightElement->FloatAttribute("cutoff");
+            } else {
+
+            }
+            lightElement = lightElement->NextSiblingElement("light");
+        }
+    }
+}
+
 
 void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transform>& transforms) {
     if (transformElement) {
@@ -348,6 +385,9 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
     tinyxml2::XMLElement* cameraElement = worldElement->FirstChildElement("camera");
     parseCameraSettings(cameraElement, settings->camera);
 
+    tinyxml2::XMLElement* lightElement = worldElement->FirstChildElement("lights");
+    parseLights(lightElement, settings->lights);
+
     tinyxml2::XMLElement* groupElement = worldElement->FirstChildElement("group");
     if (!groupElement) {
         std::cerr << "Group element not found." << std::endl;
@@ -360,6 +400,29 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 		std::cout << "File Name: " << model.modelFile.fileName << std::endl;
 	}
     return settings;
+}
+
+void printLight(const Light& light) {
+    std::cout << "Light Type: " << light.type << std::endl;
+    if (light.type == "point") {
+        const auto& pos = light.pointLight.position;
+        std::cout << "Position: (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+    } else if (light.type == "directional") {
+        const auto& dir = light.directionalLight.direction;
+        std::cout << "Direction: (" << dir.x << ", " << dir.y << ", " << dir.z << ")" << std::endl;
+    } else if (light.type == "spotlight") {
+        const auto& pos = light.spotLight.position;
+        const auto& dir = light.spotLight.direction;
+        std::cout << "Position: (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+        std::cout << "Direction: (" << dir.x << ", " << dir.y << ", " << dir.z << ")" << std::endl;
+        std::cout << "Cutoff: " << light.spotLight.cutoff << std::endl;
+    }
+}
+
+void printLights(const Lights& lights) {
+    for (const auto& light : lights.lights) {
+        printLight(light);
+    }
 }
 
 
@@ -449,6 +512,7 @@ void print(const Parser& parser) {
     std::cout << "Near: " << parser.camera.projection.near << std::endl;
     std::cout << "Far: " << parser.camera.projection.far << std::endl;
 
+    printLights(parser.lights);
     std::cout << "\nTransforms:" << std::endl;
     printGroup(parser.rootNode);
 
@@ -456,7 +520,7 @@ void print(const Parser& parser) {
 }
 
 int main(){
-    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase4/configs/test_4_5.xml");
+    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase4/configs/test_4_6.xml");
     print(*parser);
     return 0;
 }
