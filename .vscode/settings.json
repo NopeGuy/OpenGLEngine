@@ -5,6 +5,6 @@
     "*.css": "css",
     "*.cpp": "cpp",
     "*.c": "c",
-    "ostream": "cpp"
+    "vector": "cpp"
   }
 }

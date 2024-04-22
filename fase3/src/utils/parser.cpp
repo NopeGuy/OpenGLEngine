@@ -241,6 +241,10 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 
     parseGroupNode(groupElement, settings->rootNode);
 
+    // print all models in settings
+    for (const auto& model : settings->rootNode.modelFiles) {
+		std::cout << "File Name: " << model.fileName << std::endl;
+	}
     return settings;
 }
 
