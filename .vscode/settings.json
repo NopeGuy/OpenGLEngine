@@ -5,6 +5,8 @@
     "*.css": "css",
     "*.cpp": "cpp",
     "*.c": "c",
-    "vector": "cpp"
+    "vector": "cpp",
+    "string": "cpp",
+    "__split_buffer": "cpp"
   }
 }

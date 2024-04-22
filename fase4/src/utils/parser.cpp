@@ -127,7 +127,7 @@ struct Model{
 
 struct Group {
     std::vector<Transform> transforms;
-    std::vector<ModelFile> modelFiles;
+    std::vector<Model> models;
     std::vector<Group> children;
 };
 
@@ -238,15 +238,24 @@ void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transfor
     }
 }
 
-void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles) {
+void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<Model>& modelVector) {
     if (modelsElement) {
         tinyxml2::XMLElement* modelElement = modelsElement->FirstChildElement("model");
         while (modelElement) {
-            ModelFile model;
+            Model model;
             const char* fileName = modelElement->Attribute("file");
             if (fileName)
-                model.fileName = fileName;
-            modelFiles.push_back(model);
+                model.modelFile.fileName = fileName;
+
+            tinyxml2::XMLElement* textureElement = modelElement->FirstChildElement("texture");
+            while (textureElement) {
+                const char* textureFile = textureElement->Attribute("file");
+                if (textureFile)
+                    model.texture.file = textureFile;
+                textureElement = textureElement->NextSiblingElement("texture");
+            }
+
+            modelVector.push_back(model);
             modelElement = modelElement->NextSiblingElement("model");
         }
     }
@@ -261,7 +270,7 @@ void parseGroupNode(tinyxml2::XMLElement* groupElement, Group& groupNode) {
 
         auto modelsElement = groupElement->FirstChildElement("models");
         if (modelsElement) {
-            parseModelFiles(modelsElement, groupNode.modelFiles);
+            parseModelFiles(modelsElement, groupNode.models);
         }
 
         auto childElement = groupElement->FirstChildElement("group");
@@ -313,8 +322,8 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
     parseGroupNode(groupElement, settings->rootNode);
 
     // print all models in settings
-    for (const auto& model : settings->rootNode.modelFiles) {
-		std::cout << "File Name: " << model.fileName << std::endl;
+    for (const auto& model : settings->rootNode.models) {
+		std::cout << "File Name: " << model.modelFile.fileName << std::endl;
 	}
     return settings;
 }
@@ -372,10 +381,11 @@ void printGroup(const Group& group, int depth = 0) {
         }
     }
 
-    for (const auto& model : group.modelFiles) {
+    for (const auto& model : group.models) {
         for (int i = 0; i < depth; ++i)
             std::cout << "  ";
-        std::cout << "File Name: " << model.fileName << std::endl;
+        std::cout << "File Name: " << model.modelFile.fileName << std::endl;
+        std::cout << "Texture File: " << model.texture.file << std::endl;
     }
 
     for (const auto& child : group.children) {
@@ -404,4 +414,10 @@ void print(const Parser& parser) {
     printGroup(parser.rootNode);
 
     std::cout << std::endl;
+}
+
+int main(){
+    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase4/configs/test_4_6.xml");
+    print(*parser);
+    return 0;
 }
