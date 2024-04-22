@@ -255,6 +255,41 @@ void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<Model>& mo
                 textureElement = textureElement->NextSiblingElement("texture");
             }
 
+            tinyxml2::XMLElement* colorElement = modelElement->FirstChildElement("color");
+            if (colorElement) {
+                tinyxml2::XMLElement* diffuseElement = colorElement->FirstChildElement("diffuse");
+                if (diffuseElement) {
+                    diffuseElement->QueryFloatAttribute("R", &model.color.diffuse.r);
+                    diffuseElement->QueryFloatAttribute("G", &model.color.diffuse.g);
+                    diffuseElement->QueryFloatAttribute("B", &model.color.diffuse.b);
+                }
+
+                tinyxml2::XMLElement* ambientElement = colorElement->FirstChildElement("ambient");
+                if (ambientElement) {
+                    ambientElement->QueryFloatAttribute("R", &model.color.ambient.r);
+                    ambientElement->QueryFloatAttribute("G", &model.color.ambient.g);
+                    ambientElement->QueryFloatAttribute("B", &model.color.ambient.b);
+                }
+
+                tinyxml2::XMLElement* specularElement = colorElement->FirstChildElement("specular");
+                if (specularElement) {
+                    specularElement->QueryFloatAttribute("R", &model.color.specular.r);
+                    specularElement->QueryFloatAttribute("G", &model.color.specular.g);
+                    specularElement->QueryFloatAttribute("B", &model.color.specular.b);
+                }
+
+                tinyxml2::XMLElement* emissiveElement = colorElement->FirstChildElement("emissive");
+                if (emissiveElement) {
+                    emissiveElement->QueryFloatAttribute("R", &model.color.emissive.r);
+                    emissiveElement->QueryFloatAttribute("G", &model.color.emissive.g);
+                    emissiveElement->QueryFloatAttribute("B", &model.color.emissive.b);
+                }
+
+                tinyxml2::XMLElement* shininessElement = colorElement->FirstChildElement("shininess");
+                if (shininessElement) {
+                    shininessElement->QueryFloatAttribute("value", &model.color.shininess.value);
+                }
+            }
             modelVector.push_back(model);
             modelElement = modelElement->NextSiblingElement("model");
         }
@@ -321,7 +356,6 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
 
     parseGroupNode(groupElement, settings->rootNode);
 
-    // print all models in settings
     for (const auto& model : settings->rootNode.models) {
 		std::cout << "File Name: " << model.modelFile.fileName << std::endl;
 	}
@@ -386,6 +420,11 @@ void printGroup(const Group& group, int depth = 0) {
             std::cout << "  ";
         std::cout << "File Name: " << model.modelFile.fileName << std::endl;
         std::cout << "Texture File: " << model.texture.file << std::endl;
+        std::cout << "Diffuse: (" << model.color.diffuse.r << ", " << model.color.diffuse.g << ", " << model.color.diffuse.b << ")" << std::endl;
+        std::cout << "Ambient: (" << model.color.ambient.r << ", " << model.color.ambient.g << ", " << model.color.ambient.b << ")" << std::endl;
+        std::cout << "Specular: (" << model.color.specular.r << ", " << model.color.specular.g << ", " << model.color.specular.b << ")" << std::endl;
+        std::cout << "Emissive: (" << model.color.emissive.r << ", " << model.color.emissive.g << ", " << model.color.emissive.b << ")" << std::endl;
+        std::cout << "Shininess: " << model.color.shininess.value << std::endl;
     }
 
     for (const auto& child : group.children) {
@@ -417,7 +456,7 @@ void print(const Parser& parser) {
 }
 
 int main(){
-    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase4/configs/test_4_6.xml");
+    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase4/configs/test_4_5.xml");
     print(*parser);
     return 0;
 }
