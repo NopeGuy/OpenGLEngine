@@ -27,6 +27,16 @@ GLuint vertices = 0;
 static int startpos = 0;
 static int endpos = 0;
 
+/*
+// Structure to save the color of the figure
+float r, g, b;
+struct Color
+{
+	float r, g, b;
+};
+vector<Color> colors;
+*/
+
 // VBO's
 GLuint *buffers = NULL;	   // temos um buffer para cada figura
 int info[100];			   // aqui guardamos o tamanho de cada buffer de cada figura
@@ -144,14 +154,17 @@ void importFiguras(List figs)
 }
 
 void drawFigures(int startpos, int endpos)
-{
+{ 
 	for (unsigned long i = startpos; i < endpos; i++)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
-		// glPolygonMode(GL_FRONT, GL_FILL);
+		// Set the color
+		//glColor3f(colors[i].r, colors[i].g, colors[i].b);
+		// Draw the figure
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
 	}
+	
 	if (endpos == figCount)
 	{
 		startpos = 0;
@@ -384,6 +397,30 @@ void keyProc(unsigned char key, int x, int y)
 		radius += 1.0f;
 		break;
 	}
+	case('m'):
+	{
+		// Move camera to the right
+		lookAtx += 2.0f;
+		break;
+	}
+	case('n'):
+	{
+		// Move camera to the left
+		lookAtx -= 2.0f;
+		break;
+	}
+	case('j'):
+	{
+		// Move camera up
+		lookAty += 2.0f;
+		break;
+	}
+	case('k'):
+	{
+		// Move camera down
+		lookAty -= 2.0f;
+		break;
+	}
 	default:
 		break;
 	}
@@ -442,7 +479,20 @@ int main(int argc, char *argv[])
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	importFiguras(figuras);
-
+	/* Colors
+	colors.push_back({1.0f, 1.0f, 0.0f}); // Yellow for Sun
+	colors.push_back({0.9f, 0.4f, 0.0f}); // Orange for Mercury
+	colors.push_back({0.7f, 0.7f, 0.7f}); // Gray for Venus
+	colors.push_back({0.0f, 0.0f, 1.0f}); // Blue for Earth
+	colors.push_back({0.7f, 0.7f, 0.7f}); // Gray for Moon
+	colors.push_back({0.8f, 0.8f, 0.8f}); // Light Gray for Mars
+	colors.push_back({0.8f, 0.4f, 0.0f}); // Brown for Jupiter
+	colors.push_back({0.6f, 0.6f, 0.3f}); // Dark Gray for Saturn
+	colors.push_back({0.8f, 0.6f, 0.4f}); // Light Brown for Saturn Ring
+	colors.push_back({0.0f, 0.8f, 1.0f}); // Light Blue for Uranus
+	colors.push_back({0.0f, 0.0f, 0.8f}); // Dark Blue for Neptune
+	colors.push_back({0.7f, 0.7f, 0.7f}); // Gray for Comet
+	*/
 	//	drawGroups(&settings->rootNode);
 
 	// OpenGL settings

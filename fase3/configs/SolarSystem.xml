@@ -150,10 +150,11 @@
         <group>
             <transform>
                 <translate time="50" align="true">
-                    <point x="80" y="0" z="-80" /> <!-- Ending Point of Comet -->
-                    <point x="-30" y="10" z="-30" /> <!-- Middle Point of Comet's Path -->
-                    <point x="-80" y="0" z="15" /> <!-- Middle Point of Comet's Path -->
-                    <point x="30" y="-10" z="80" /> <!-- Starting Point of Comet -->
+                    <point x="0" y="-10" z="-80" /> <!-- Starting Point of Comet -->
+                    <point x="-30" y="0" z="-50" /> <!-- Middle Point of Comet's Path -->
+                    <point x="-40" y="0" z="-10" /> <!-- Middle Point of Comet's Path -->
+                    <point x="0" y="10" z="100" /> <!-- Middle Point of Comet's Path -->
+                    <point x="60" y="0" z="0" /> <!-- Ending Point of Comet -->
                 </translate>
                 <!-- Animation: Move along the path -->
                 <rotate time="10" x="0" y="1" z="0" /> <!-- Rotation for Comet -->
