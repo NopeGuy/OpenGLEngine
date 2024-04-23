@@ -108,6 +108,7 @@ struct Shininess {
 };
 
 struct Color {
+    bool hasColor = false;
     Diffuse diffuse;
     Ambient ambient;
     Specular specular;
@@ -297,6 +298,7 @@ void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<Model>& mo
 
             tinyxml2::XMLElement* colorElement = modelElement->FirstChildElement("color");
             if (colorElement) {
+                model.color.hasColor = true;
                 tinyxml2::XMLElement* diffuseElement = colorElement->FirstChildElement("diffuse");
                 if (diffuseElement) {
                     diffuseElement->QueryFloatAttribute("R", &model.color.diffuse.r);
@@ -398,10 +400,6 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
     }
 
     parseGroupNode(groupElement, settings->rootNode);
-
-    for (const auto& model : settings->rootNode.models) {
-		std::cout << "File Name: " << model.modelFile.fileName << std::endl;
-	}
     return settings;
 }
 
@@ -461,12 +459,19 @@ void printGroup(const Group& group, int depth = 0) {
         for (int i = 0; i < depth; ++i)
             std::cout << "  ";
         std::cout << "File Name: " << model.modelFile.fileName << std::endl;
-        std::cout << "Texture File: " << model.texture.file << std::endl;
-        std::cout << "Diffuse: (" << model.color.diffuse.r << ", " << model.color.diffuse.g << ", " << model.color.diffuse.b << ")" << std::endl;
-        std::cout << "Ambient: (" << model.color.ambient.r << ", " << model.color.ambient.g << ", " << model.color.ambient.b << ")" << std::endl;
-        std::cout << "Specular: (" << model.color.specular.r << ", " << model.color.specular.g << ", " << model.color.specular.b << ")" << std::endl;
-        std::cout << "Emissive: (" << model.color.emissive.r << ", " << model.color.emissive.g << ", " << model.color.emissive.b << ")" << std::endl;
-        std::cout << "Shininess: " << model.color.shininess.value << std::endl;
+        if(!model.texture.file.empty())
+            std::cout << "Texture File: " << model.texture.file << std::endl;
+        std::cout << "\n";
+        
+        if(model.color.hasColor){
+            std::cout << "Color:\n";
+            std::cout << "Diffuse: (" << model.color.diffuse.r << ", " << model.color.diffuse.g << ", " << model.color.diffuse.b << ")" << std::endl;
+            std::cout << "Ambient: (" << model.color.ambient.r << ", " << model.color.ambient.g << ", " << model.color.ambient.b << ")" << std::endl;
+            std::cout << "Specular: (" << model.color.specular.r << ", " << model.color.specular.g << ", " << model.color.specular.b << ")" << std::endl;
+            std::cout << "Emissive: (" << model.color.emissive.r << ", " << model.color.emissive.g << ", " << model.color.emissive.b << ")" << std::endl;
+            std::cout << "Shininess: " << model.color.shininess.value << std::endl;
+            std::cout << "\n";
+        }
     }
 
     for (const auto& child : group.children) {
@@ -491,10 +496,11 @@ void print(const Parser& parser) {
     std::cout << "Near: " << parser.camera.projection.near << std::endl;
     std::cout << "Far: " << parser.camera.projection.far << std::endl;
 
-    std::cout << "\nLights:" << std::endl;
     for (const auto& light : parser.lights.lights) {
+        if(!parser.lights.lights.empty()){
+        std::cout << "\nLights:" << std::endl;
         std::cout << "Type: " << light.type << std::endl;
-         std::string typeStr = light.type;
+        std::string typeStr = light.type;
         if (typeStr == "point") {
             std::cout << "Position: (" << light.pointLight.position.x << ", " << light.pointLight.position.y << ", " << light.pointLight.position.z << ")" << std::endl;
         } else if (typeStr == "directional") {
@@ -505,6 +511,7 @@ void print(const Parser& parser) {
             std::cout << "Cutoff: " << light.spotLight.cutoff << std::endl;
         }
     }
+    }
     std::cout << "\nTransforms:" << std::endl;
     printGroup(parser.rootNode);
 
@@ -512,7 +519,7 @@ void print(const Parser& parser) {
 }
 
 int main(){
-    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase4/configs/test_4_5.xml");
+    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase2/configs/test_2_3.xml");
     print(*parser);
     return 0;
 }
