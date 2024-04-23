@@ -517,9 +517,3 @@ void print(const Parser& parser) {
 
     std::cout << std::endl;
 }
-
-int main(){
-    Parser* parser = ParserSettingsConstructor("/Users/sensei/Documents/GitHub/CG-2324/fase2/configs/test_2_3.xml");
-    print(*parser);
-    return 0;
-}

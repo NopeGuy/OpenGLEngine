@@ -393,6 +393,7 @@ void keyProc(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
+/*
 int main(int argc, char *argv[])
 {
 	if (argc != 2)
@@ -456,8 +457,8 @@ int main(int argc, char *argv[])
 
 	return 1;
 }
-
-/* Debugging function to print the parsed values
+*/
+// Debugging function to print the parsed values
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
@@ -482,4 +483,3 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
-*/
