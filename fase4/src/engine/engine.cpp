@@ -393,7 +393,7 @@ void keyProc(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-/*
+
 int main(int argc, char *argv[])
 {
 	if (argc != 2)
@@ -424,7 +424,7 @@ int main(int argc, char *argv[])
 	beta_ = asin(camy / radius);
 
 	fillList(&settings->rootNode);
-
+	print(*settings);
 	// init GLUT and the window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -454,12 +454,12 @@ int main(int argc, char *argv[])
 	glutMainLoop();
 
 	deepDeleteList(figuras, deleteFigura);
-
 	return 1;
 }
-*/
+
 // Debugging function to print the parsed values
 
+/*
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		std::cerr << "Usage: " << argv[0] << " <xml_file_path>" << std::endl;
@@ -483,3 +483,4 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+*/
