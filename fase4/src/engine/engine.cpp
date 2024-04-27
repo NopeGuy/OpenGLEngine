@@ -27,6 +27,16 @@ GLuint vertices = 0;
 static int startpos = 0;
 static int endpos = 0;
 
+/*
+// Structure to save the color of the figure
+float r, g, b;
+struct Color
+{
+	float r, g, b;
+};
+vector<Color> colors;
+*/
+
 // VBO's
 GLuint *buffers = NULL;	   // temos um buffer para cada figura
 int info[100];			   // aqui guardamos o tamanho de cada buffer de cada figura
@@ -144,14 +154,17 @@ void importFiguras(List figs)
 }
 
 void drawFigures(int startpos, int endpos)
-{
+{ 
 	for (unsigned long i = startpos; i < endpos; i++)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
-		// glPolygonMode(GL_FRONT, GL_FILL);
+		// Set the color
+		//glColor3f(colors[i].r, colors[i].g, colors[i].b);
+		// Draw the figure
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
 	}
+	
 	if (endpos == figCount)
 	{
 		startpos = 0;
@@ -290,24 +303,20 @@ void drawGroups(const Group *group)
 
 void renderScene(void)
 {
-	// Clear buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Set the camera
 	glLoadIdentity();
 	gluLookAt(camx, camy, camz, lookAtx, lookAty, lookAtz, upx, upy, upz);
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
 
-	// DEBUG: Draw eixos
 	glPushMatrix();
 	glScalef(2.0f, 2.0f, 2.0f);
 	drawEixos();
 	glPopMatrix();
 	drawGroups(&settings->rootNode);
 
-	// End of frame
 	glutSwapBuffers();
 }
 
@@ -384,6 +393,30 @@ void keyProc(unsigned char key, int x, int y)
 		radius += 1.0f;
 		break;
 	}
+	case('m'):
+	{
+		// Move camera to the right
+		lookAtx += 2.0f;
+		break;
+	}
+	case('n'):
+	{
+		// Move camera to the left
+		lookAtx -= 2.0f;
+		break;
+	}
+	case('j'):
+	{
+		// Move camera up
+		lookAty += 2.0f;
+		break;
+	}
+	case('k'):
+	{
+		// Move camera down
+		lookAty -= 2.0f;
+		break;
+	}
 	default:
 		break;
 	}
@@ -392,7 +425,6 @@ void keyProc(unsigned char key, int x, int y)
 	camz = radius * cos(alpha) * cos(beta_);
 	glutPostRedisplay();
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -405,6 +437,7 @@ int main(int argc, char *argv[])
 	printf("File path: %s\n", filePath.c_str());
 	figuras = newEmptyList();
 	settings = ParserSettingsConstructor(filePath);
+	print(*settings);
 	camx = settings->camera.position.x;
 	camy = settings->camera.position.y;
 	camz = settings->camera.position.z;
@@ -424,26 +457,36 @@ int main(int argc, char *argv[])
 	beta_ = asin(camy / radius);
 
 	fillList(&settings->rootNode);
-	print(*settings);
-	// init GLUT and the window
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(800, 800);
 	glutCreateWindow("Engine");
 	glewInit();
-	// Required callback registry
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
 	glutIdleFunc(renderScene);
-	// put here the registration of the keyboard callbacks (por enquanto só mexem na camara como forma de debug)
 	glutKeyboardFunc(keyProc);
 	glutSpecialFunc(specKeyProc);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	importFiguras(figuras);
-
+	/* Colors
+	colors.push_back({1.0f, 1.0f, 0.0f}); // Yellow for Sun
+	colors.push_back({0.9f, 0.4f, 0.0f}); // Orange for Mercury
+	colors.push_back({0.7f, 0.7f, 0.7f}); // Gray for Venus
+	colors.push_back({0.0f, 0.0f, 1.0f}); // Blue for Earth
+	colors.push_back({0.7f, 0.7f, 0.7f}); // Gray for Moon
+	colors.push_back({0.8f, 0.8f, 0.8f}); // Light Gray for Mars
+	colors.push_back({0.8f, 0.4f, 0.0f}); // Brown for Jupiter
+	colors.push_back({0.6f, 0.6f, 0.3f}); // Dark Gray for Saturn
+	colors.push_back({0.8f, 0.6f, 0.4f}); // Light Brown for Saturn Ring
+	colors.push_back({0.0f, 0.8f, 1.0f}); // Light Blue for Uranus
+	colors.push_back({0.0f, 0.0f, 0.8f}); // Dark Blue for Neptune
+	colors.push_back({0.7f, 0.7f, 0.7f}); // Gray for Comet
+	*/
 	//	drawGroups(&settings->rootNode);
 
 	// OpenGL settings
@@ -454,12 +497,12 @@ int main(int argc, char *argv[])
 	glutMainLoop();
 
 	deepDeleteList(figuras, deleteFigura);
+
 	return 1;
 }
 
-// Debugging function to print the parsed values
+/* Debugging function to print the parsed values
 
-/*
 int main(int argc, char* argv[]) {
 	if (argc != 2) {
 		std::cerr << "Usage: " << argv[0] << " <xml_file_path>" << std::endl;

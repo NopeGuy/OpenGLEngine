@@ -46,13 +46,13 @@ void CatRomPoint(float t, float* p0, float* p1, float* p2, float* p3, float* pos
 		float p[4] = { p0[i], p1[i], p2[i], p3[i] };
 		float A[4];
 
-		//Compute vector A = M * P 
+		// vector A = M * P 
 		multMatrixVector((float*)m, p, A);
 
-		//Compute pos[i] = T * A
+		// pos[i] = T * A
 		pos[i] = T[0] * A[0] + T[1] * A[1] + T[2] * A[2] + T[3] * A[3];
 
-		//compute deriv[i] = T' * A
+		// deriv[i] = T' * A
 		deriv[i] = T_deriv[0] * A[0] + T_deriv[1] * A[1] + T_deriv[2] * A[2] + T_deriv[3] * A[3];
 	}
 }
@@ -91,7 +91,6 @@ void GlobalCatRomPoint(float gt, vector<float> px, vector<float> py, vector<floa
 	CatRomPoint(t, p[0], p[1], p[2], p[3], pos, deriv);
 }
 void displayCatmullRom(vector<float> px, vector<float> py, vector<float> pz) {
-	// draw curve using line segments with GL_LINE_LOOP
 	glBegin(GL_LINE_LOOP);
 	for (float i = 0; i < 1; i += tesselation) {
 		GlobalCatRomPoint(i, px, py, pz, Pos, Deriv);

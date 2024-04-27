@@ -8,92 +8,41 @@ struct Window {
     int height = 0;
 };
 
-struct Position {
+struct Point {
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
-};
-
-struct LookAt {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-};
-
-struct Up {
-    float x = 0.0f;
-    float y = 1.0f; 
-    float z = 0.0f;
-};
-
-struct Projection {
-    float fov = 60.0f; 
-    float near = 1.0f; 
-    float far = 1000.0f; 
 };
 
 struct Camera {
-    Position position;
-    LookAt lookAt;
-    Up up;
-    Projection projection;
-};
-
-struct Light{
-    std::string type;
-    float cutoff = 0.0f;
-    float dirX = 0.0f;
-    float dirY = 0.0f;
-    float dirZ = 0.0f;
-    float posX = 0.0f;
-    float posY = 0.0f;
-    float posZ = 0.0f;
+    Point position;
+    Point lookAt;
+    Point up;
+    Point projection;
 };
 
 struct Transform {
     char type;
-    float x;
-    float y;
-    float z;
-    float angle;
-    float time;
+    Point point;
+    float angle = 0.0f;
+    float time = 0.0f;
     bool align;
-    std::vector<Position> points;
+    std::vector<Point> points;
 };
 
-struct ModelFile {
+struct Model {
     std::string fileName;
-};
-
-
-struct Color {
-    std::string type;
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
-    float shininess = 0.0f;
-};
-
-struct Texture {
-    std::string file;
-};
-
-struct Model{
-    ModelFile modelFile;
-    Texture texture;
-    std::vector<Color> color;
 };
 
 struct Group {
     std::vector<Transform> transforms;
-    std::vector<Model> models;
+    std::vector<Model> modelFiles;
     std::vector<Group> children;
 };
 
 struct Parser {
     Window window;
     Camera camera;
-    std::vector<Light> lights;
     Group rootNode;
 };
 
@@ -115,13 +64,15 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, Camera& camera) {
         auto upElement = cameraElement->FirstChildElement("up");
         auto projectionElement = cameraElement->FirstChildElement("projection");
 
-        positionElement->QueryFloatAttribute("x", &camera.position.x);
-        positionElement->QueryFloatAttribute("y", &camera.position.y);
-        positionElement->QueryFloatAttribute("z", &camera.position.z);
+        if (positionElement && lookAtElement) {
+            positionElement->QueryFloatAttribute("x", &camera.position.x);
+            positionElement->QueryFloatAttribute("y", &camera.position.y);
+            positionElement->QueryFloatAttribute("z", &camera.position.z);
 
-        lookAtElement->QueryFloatAttribute("x", &camera.lookAt.x);
-        lookAtElement->QueryFloatAttribute("y", &camera.lookAt.y);
-        lookAtElement->QueryFloatAttribute("z", &camera.lookAt.z);
+            lookAtElement->QueryFloatAttribute("x", &camera.lookAt.x);
+            lookAtElement->QueryFloatAttribute("y", &camera.lookAt.y);
+            lookAtElement->QueryFloatAttribute("z", &camera.lookAt.z);
+        }
 
         if (upElement) {
             upElement->QueryFloatAttribute("x", &camera.up.x);
@@ -130,9 +81,9 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, Camera& camera) {
         }
 
         if (projectionElement) {
-            projectionElement->QueryFloatAttribute("fov", &camera.projection.fov);
-            projectionElement->QueryFloatAttribute("near", &camera.projection.near);
-            projectionElement->QueryFloatAttribute("far", &camera.projection.far);
+            projectionElement->QueryFloatAttribute("fov", &camera.projection.x);
+            projectionElement->QueryFloatAttribute("near", &camera.projection.y);
+            projectionElement->QueryFloatAttribute("far", &camera.projection.z);
         }
     }
     else {
@@ -141,195 +92,84 @@ void parseCameraSettings(tinyxml2::XMLElement* cameraElement, Camera& camera) {
     }
 }
 
-void parseLights(tinyxml2::XMLElement* lightsElement, std::vector<Light>& lights) {
-    if (lightsElement) {
-        auto lightElement = lightsElement->FirstChildElement("light");
-        while (lightElement) {
-            Light light;
-            const char* type = lightElement->Attribute("type");
-            if (type) {
-                std::string typeStr = type;
-                if (typeStr == "point") {
-                    light.type = typeStr;
-                    light.posX = lightElement->FloatAttribute("posx");
-                    light.posY = lightElement->FloatAttribute("posy");
-                    light.posZ = lightElement->FloatAttribute("posz");
-                } else if (typeStr == "directional") {
-                    light.type = typeStr;
-                    light.dirX = lightElement->FloatAttribute("dirx");
-                    light.dirY = lightElement->FloatAttribute("diry");
-                    light.dirY = lightElement->FloatAttribute("dirz");
-                } else if (typeStr == "spot") {
-                    light.type = typeStr;
-                    light.posX = lightElement->FloatAttribute("posx");
-                    light.posY = lightElement->FloatAttribute("posy");
-                    light.posZ = lightElement->FloatAttribute("posz");
-                    light.dirX = lightElement->FloatAttribute("dirx");
-                    light.dirY = lightElement->FloatAttribute("diry");
-                    light.dirZ = lightElement->FloatAttribute("dirz");
-                    light.cutoff = lightElement->FloatAttribute("cutoff");
-                } else {
-                    // Handle unrecognized type
-                }
-            }
-            lights.push_back(light);
-            lightElement = lightElement->NextSiblingElement("light");
-        }
-    }
-}
-
-
-
 void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transform>& transforms) {
-    if (transformElement) {
-        for (tinyxml2::XMLElement* t = transformElement->FirstChildElement(); t; t = t->NextSiblingElement()) {
-            Transform transform;
-            transform.type = t->Value()[0];
-            if (transform.type == 't') {
-                const char* timeAttr = t->Attribute("time");
-                if (timeAttr) {
-                    transform.time = atof(timeAttr);
-                    transform.align = t->BoolAttribute("align", false);
-                    tinyxml2::XMLElement* pointElement = t->FirstChildElement("point");
-                    while (pointElement) {
-                        Position point;
-                        pointElement->QueryFloatAttribute("x", &point.x);
-                        pointElement->QueryFloatAttribute("y", &point.y);
-                        pointElement->QueryFloatAttribute("z", &point.z);
-                        transform.points.push_back(point);
-                        pointElement = pointElement->NextSiblingElement("point");
-                    }
-                }
-                else {
-                    transform.time = 0.0f;
-                    transform.x = atof(t->Attribute("x"));
-                    transform.y = atof(t->Attribute("y"));
-                    transform.z = atof(t->Attribute("z"));
-                }
+    if (!transformElement)
+        return;
+
+    for (tinyxml2::XMLElement* t = transformElement->FirstChildElement(); t; t = t->NextSiblingElement()) {
+        Transform transform;
+        transform.type = t->Value()[0];
+
+        const char* timeAttr = t->Attribute("time");
+        transform.time = timeAttr ? atof(timeAttr) : 0.0f;
+
+        switch (transform.type) {
+        case 't':
+            transform.align = t->BoolAttribute("align", false);
+            for (tinyxml2::XMLElement* pointElement = t->FirstChildElement("point"); pointElement; pointElement = pointElement->NextSiblingElement("point")) {
+                Point point;
+                pointElement->QueryFloatAttribute("x", &point.x);
+                pointElement->QueryFloatAttribute("y", &point.y);
+                pointElement->QueryFloatAttribute("z", &point.z);
+                transform.points.push_back(point);
             }
-            else if (transform.type == 'r') {
-                const char* timeAttr = t->Attribute("time");
-                if (timeAttr) {
-                    transform.time = atof(timeAttr);
-                    transform.x = atof(t->Attribute("x"));
-                    transform.y = atof(t->Attribute("y"));
-                    transform.z = atof(t->Attribute("z"));
-                }
-                else {
-                    transform.time = 0.0f;
-                    transform.angle = atof(t->Attribute("angle"));
-                    transform.x = atof(t->Attribute("x"));
-                    transform.y = atof(t->Attribute("y"));
-                    transform.z = atof(t->Attribute("z"));
-                }
+            if (transform.time == 0.0f) {
+                transform.point.x = atof(t->Attribute("x"));
+                transform.point.y = atof(t->Attribute("y"));
+                transform.point.z = atof(t->Attribute("z"));
             }
-            else if (transform.type == 's') {
-                transform.time = 0.0f;
-                transform.x = atof(t->Attribute("x"));
-                transform.y = atof(t->Attribute("y"));
-                transform.z = atof(t->Attribute("z"));
-            }
-            else {
-                transform.angle = 0.0f;
-            }
-            transforms.push_back(transform);
+            break;
+
+        case 'r':
+            transform.angle = atof(t->Attribute("angle"));
+            transform.point.x = atof(t->Attribute("x"));
+            transform.point.y = atof(t->Attribute("y"));
+            transform.point.z = atof(t->Attribute("z"));
+            break;
+
+        case 's':
+            transform.point.x = atof(t->Attribute("x"));
+            transform.point.y = atof(t->Attribute("y"));
+            transform.point.z = atof(t->Attribute("z"));
+            break;
+
+        default:
+            break;
         }
+
+        transforms.push_back(transform);
     }
 }
 
-void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<Model>& modelVector) {
-    if (modelsElement) {
-        tinyxml2::XMLElement* modelElement = modelsElement->FirstChildElement("model");
-        while (modelElement) {
-            Model model;
-            const char* fileName = modelElement->Attribute("file");
-            if (fileName)
-                model.modelFile.fileName = fileName;
-            
-            tinyxml2::XMLElement* textureElement = modelElement->FirstChildElement("texture");
-            while (textureElement) {
-                const char* textureFile = textureElement->Attribute("file");
-                if (textureFile)
-                    model.texture.file = textureFile;
-                textureElement = textureElement->NextSiblingElement("texture");
-            }
-            
-            tinyxml2::XMLElement* colorElement = modelElement->FirstChildElement("color");
-            if (colorElement) {
-                tinyxml2::XMLElement* diffuseElement = colorElement->FirstChildElement("diffuse");
-                if (diffuseElement) {
-                    Color diffuseColor;
-                    diffuseColor.type = "diffuse";
-                    diffuseElement->QueryFloatAttribute("R", &diffuseColor.r);
-                    diffuseElement->QueryFloatAttribute("G", &diffuseColor.g);
-                    diffuseElement->QueryFloatAttribute("B", &diffuseColor.b);
-                    model.color.push_back(diffuseColor);
-                }
+void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<Model>& modelFiles) {
+    if (!modelsElement)
+        return;
 
-                tinyxml2::XMLElement* ambientElement = colorElement->FirstChildElement("ambient");
-                if (ambientElement) {
-                    Color ambientColor;
-                    ambientColor.type = "ambient";
-                    ambientElement->QueryFloatAttribute("R", &ambientColor.r);
-                    ambientElement->QueryFloatAttribute("G", &ambientColor.g);
-                    ambientElement->QueryFloatAttribute("B", &ambientColor.b);
-                    model.color.push_back(ambientColor);
-                }
-
-                tinyxml2::XMLElement* specularElement = colorElement->FirstChildElement("specular");
-                if (specularElement) {
-                    Color specularColor;
-                    specularColor.type = "specular";
-                    specularElement->QueryFloatAttribute("R", &specularColor.r);
-                    specularElement->QueryFloatAttribute("G", &specularColor.g);
-                    specularElement->QueryFloatAttribute("B", &specularColor.b);
-                    model.color.push_back(specularColor);
-                }
-
-                tinyxml2::XMLElement* emissiveElement = colorElement->FirstChildElement("emissive");
-                if (emissiveElement) {
-                    Color emissive;
-                    emissive.type = "emissive";
-                    emissiveElement->QueryFloatAttribute("R", &emissive.r);
-                    emissiveElement->QueryFloatAttribute("G", &emissive.g);
-                    emissiveElement->QueryFloatAttribute("B", &emissive.b);
-                    model.color.push_back(emissive);
-                }
-
-                tinyxml2::XMLElement* shininessElement = colorElement->FirstChildElement("shininess");
-                if (shininessElement) {
-                    Color shininess;
-                    shininess.type = "shininess";
-                    shininessElement->QueryFloatAttribute("value", &shininess.shininess);
-                    model.color.push_back(shininess);
-                }
-            }
-
-            modelVector.push_back(model);
-            modelElement = modelElement->NextSiblingElement("model");
-        }
+    for (tinyxml2::XMLElement* modelElement = modelsElement->FirstChildElement("model"); modelElement; modelElement = modelElement->NextSiblingElement("model")) {
+        Model model;
+        const char* fileName = modelElement->Attribute("file");
+        if (fileName)
+            model.fileName = fileName;
+        modelFiles.push_back(std::move(model)); // Move semantics for efficient copying
     }
 }
 
 void parseGroupNode(tinyxml2::XMLElement* groupElement, Group& groupNode) {
-    if (groupElement) {
-        auto transformElement = groupElement->FirstChildElement("transform");
-        if (transformElement) {
-            parseTransform(transformElement, groupNode.transforms);
-        }
+    if (!groupElement)
+        return;
 
-        auto modelsElement = groupElement->FirstChildElement("models");
-        if (modelsElement) {
-            parseModelFiles(modelsElement, groupNode.models);
-        }
+    auto transformElement = groupElement->FirstChildElement("transform");
+    if (transformElement)
+        parseTransform(transformElement, groupNode.transforms);
 
-        auto childElement = groupElement->FirstChildElement("group");
-        while (childElement) {
-            Group childNode;
-            parseGroupNode(childElement, childNode);
-            groupNode.children.push_back(childNode);
-            childElement = childElement->NextSiblingElement("group");
-        }
+    auto modelsElement = groupElement->FirstChildElement("models");
+    if (modelsElement)
+        parseModelFiles(modelsElement, groupNode.modelFiles);
+
+    for (tinyxml2::XMLElement* childElement = groupElement->FirstChildElement("group"); childElement; childElement = childElement->NextSiblingElement("group")) {
+        Group childNode;
+        parseGroupNode(childElement, childNode);
+        groupNode.children.push_back(std::move(childNode)); // Move semantics for efficient copying
     }
 }
 
@@ -363,9 +203,6 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
     tinyxml2::XMLElement* cameraElement = worldElement->FirstChildElement("camera");
     parseCameraSettings(cameraElement, settings->camera);
 
-    tinyxml2::XMLElement* lightElement = worldElement->FirstChildElement("lights");
-    parseLights(lightElement, settings->lights);
-
     tinyxml2::XMLElement* groupElement = worldElement->FirstChildElement("group");
     if (!groupElement) {
         std::cerr << "Group element not found." << std::endl;
@@ -373,8 +210,14 @@ Parser* ParserSettingsConstructor(const std::string& filePath) {
     }
 
     parseGroupNode(groupElement, settings->rootNode);
+
+    // print all models in settings
+    for (const auto& model : settings->rootNode.modelFiles) {
+		std::cout << "File Name: " << model.fileName << std::endl;
+	}
     return settings;
 }
+
 
 void printGroup(const Group& group, int depth = 0) {
     for (const auto& transform : group.transforms) {
@@ -398,7 +241,7 @@ void printGroup(const Group& group, int depth = 0) {
             else {
                 for (int i = 0; i < depth; ++i)
                     std::cout << "  ";
-                std::cout << "Translation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+                std::cout << "Translation: (" << transform.point.x<< ", " << transform.point.y << ", " << transform.point.z << ")" << std::endl;
             }
         }
         else if (transform.type == 'r') {
@@ -414,12 +257,12 @@ void printGroup(const Group& group, int depth = 0) {
             }
             for (int i = 0; i < depth; ++i)
                 std::cout << "  ";
-            std::cout << "Rotation: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            std::cout << "Rotation: (" << transform.point.x << ", " << transform.point.y << ", " << transform.point.z << ")" << std::endl;
         }
         else if (transform.type == 's') {
             for (int i = 0; i < depth; ++i)
                 std::cout << "  ";
-            std::cout << "Scale: (" << transform.x << ", " << transform.y << ", " << transform.z << ")" << std::endl;
+            std::cout << "Scale: (" << transform.point.x << ", " << transform.point.y << ", " << transform.point.z << ")" << std::endl;
         }
         else {
             for (int i = 0; i < depth; ++i)
@@ -428,22 +271,10 @@ void printGroup(const Group& group, int depth = 0) {
         }
     }
 
-    for (const auto& model : group.models) {
+    for (const auto& model : group.modelFiles) {
         for (int i = 0; i < depth; ++i)
             std::cout << "  ";
-        std::cout << "File Name: " << model.modelFile.fileName << std::endl;
-        if(!model.texture.file.empty())
-            std::cout << "Texture File: " << model.texture.file << std::endl;
-        std::cout << "\n";
-        
-        if(model.color.size() > 0)
-            std::cout << "Color:\n";
-        std::cout << "\n";
-        for (const auto& color : model.color) {
-            std::cout << color.type << ", " << color.r << ", " << color.g << ", " << color.b << std::endl;
-        }
-        std::cout << "\n";
-
+        std::cout << "File Name: " << model.fileName << std::endl;
     }
 
     for (const auto& child : group.children) {
@@ -464,21 +295,10 @@ void print(const Parser& parser) {
     std::cout << "LookAt: (" << parser.camera.lookAt.x << ", " << parser.camera.lookAt.y << ", " << parser.camera.lookAt.z << ")" << std::endl;
     std::cout << "Up: (" << parser.camera.up.x << ", " << parser.camera.up.y << ", " << parser.camera.up.z << ")" << std::endl;
     std::cout << "Projection:" << std::endl;
-    std::cout << "FOV: " << parser.camera.projection.fov << std::endl;
-    std::cout << "Near: " << parser.camera.projection.near << std::endl;
-    std::cout << "Far: " << parser.camera.projection.far << std::endl;
+    std::cout << "FOV: " << parser.camera.projection.x << std::endl;
+    std::cout << "Near: " << parser.camera.projection.y << std::endl;
+    std::cout << "Far: " << parser.camera.projection.z << std::endl;
 
-    std::cout << "\n";
-    if (parser.lights.size() > 0)
-        std::cout << "Lights:\n";
-    std::cout << "\n";
-
-    for (const auto& light : parser.lights) {
-        std::cout << light.type << "\n" << "(" << light.posX << ", " << light.posY << ", " << light.posZ << ")" << "\n" << "(" << light.dirX << "," << light.dirY << "," << light.dirZ << ")" << "\n" << "Cutoff: " << light.cutoff << std::endl;
-    }
-
-    std::cout << "\n";
-  
     std::cout << "\nTransforms:" << std::endl;
     printGroup(parser.rootNode);
 
