@@ -16,6 +16,7 @@
 #include "../utils/parser.hpp"
 #include <vector>
 #include "../utils/curve.hpp"
+#include <memory.h>
 
 using namespace std;
 

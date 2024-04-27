@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 #include "../tinyXML/tinyxml2.h"
 
 struct Window {
