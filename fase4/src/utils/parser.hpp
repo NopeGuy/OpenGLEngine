@@ -73,10 +73,10 @@ struct Parser {
 void parseWindowSettings(tinyxml2::XMLElement* windowElement, Window& window);
 void parseCameraSettings(tinyxml2::XMLElement* cameraElement, Camera& camera);
 void parseTransform(tinyxml2::XMLElement* transformElement, std::vector<Transform>& transforms);
-void parseModelFiles(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles);
+void parseModel(tinyxml2::XMLElement* modelsElement, std::vector<ModelFile>& modelFiles);
 void parseGroupNode(tinyxml2::XMLElement* groupElement, Group& groupNode);
 bool loadXML(const std::string& filePath, tinyxml2::XMLDocument& doc);
-Parser* ParserSettingsConstructor(const std::string& filePath);
+std::unique_ptr<Parser> ParserSettingsConstructor(const std::string& filePath);
 void print(const Parser& parser);
 
 #endif // XML_PARSER_HPP

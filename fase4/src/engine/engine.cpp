@@ -77,7 +77,7 @@ std::string fileName = "";
 
 int mode = GL_LINE;
 
-Parser *settings = new Parser();
+std::unique_ptr<Parser> settings;
 List figuras = NULL;
 
 void changeSize(int w, int h)
@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
 	printf("File path: %s\n", filePath.c_str());
 	figuras = newEmptyList();
 	settings = ParserSettingsConstructor(filePath);
-	print(*settings);
+	//print(*settings);
 	camx = settings->camera.position.x;
 	camy = settings->camera.position.y;
 	camz = settings->camera.position.z;
