@@ -388,6 +388,10 @@ void printGroup(const Group& group, int depth = 0) {
 }
 
 void print(const Parser& parser) {
+    if (!&parser) {
+		std::cerr << "Parser is empty." << std::endl;
+		return;
+	}
     std::cout << "Window settings:" << std::endl;
     std::cout << "Width: " << parser.window.width << std::endl;
     std::cout << "Height: " << parser.window.height << std::endl;
