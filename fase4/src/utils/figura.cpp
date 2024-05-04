@@ -64,10 +64,10 @@ Figura fileToFigura(const char* path) {
         char buffer[1024];
         fgets(buffer, 1023, file);
         int vertices = atoi(buffer);
-        float x, y, z;
+        float x, y, z, vx, vy, vz, u, v;
         for (int i = 0; i < vertices; i++) {
             fgets(buffer, 1023, file);
-            sscanf(buffer, "%f,%f,%f", &x, &y, &z);
+            sscanf(buffer, "%f,%f,%f ; %f %f %f ; %f %f", &x, &y, &z, &vx, &vy, &vz, &u, &v);
             addPonto(f, newPonto(x, y, z));
         }
         fclose(file);

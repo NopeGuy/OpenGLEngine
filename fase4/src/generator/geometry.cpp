@@ -93,12 +93,12 @@ void generateBox(float size, int divisions, const std::string& filename) {
 
     float step = size / divisions;
     float half = size / 2;
-    int totalVertices = 6 * 2 * divisions * divisions * 3;
+    int totalVertices = 6 * 2 * divisions * divisions * 3; // 6 faces, 2 triângulos por divisão quadrada, 3 vértices por triângulo
     file << totalVertices << std::endl;
 
-    // Função de vértices (para ser mais legivel)
-    auto writeVertex = [&](float x, float y, float z) {
-        file << x << "," << y << "," << z << std::endl;
+    // Função de vértices (para ser mais legível)
+    auto writeVertex = [&](float x, float y, float z, float nx, float ny, float nz, float u, float v) {
+        file << x << "," << y << "," << z << "; " << nx << "," << ny << "," << nz << "; " << u << "," << v << std::endl;
         };
 
     // Faces do cubo
@@ -109,29 +109,58 @@ void generateBox(float size, int divisions, const std::string& filename) {
             float x = -half + j * step;
             float xNext = x + step;
 
+            float u = float(j) / divisions;
+            float v = float(i) / divisions;
+            float uNext = float(j + 1) / divisions;
+            float vNext = float(i + 1) / divisions;
+
             // Topo (y = half)
-            writeVertex(x, half, y); writeVertex(x, half, yNext); writeVertex(xNext, half, y);
-            writeVertex(xNext, half, y); writeVertex(x, half, yNext); writeVertex(xNext, half, yNext);
+            writeVertex(x, half, y, 0, 1, 0, u, v);
+            writeVertex(x, half, yNext, 0, 1, 0, u, vNext);
+            writeVertex(xNext, half, y, 0, 1, 0, uNext, v);
+            writeVertex(xNext, half, y, 0, 1, 0, uNext, v);
+            writeVertex(x, half, yNext, 0, 1, 0, u, vNext);
+            writeVertex(xNext, half, yNext, 0, 1, 0, uNext, vNext);
 
             // Base (y = -half)
-            writeVertex(x, -half, y); writeVertex(xNext, -half, y); writeVertex(x, -half, yNext);
-            writeVertex(xNext, -half, y); writeVertex(xNext, -half, yNext); writeVertex(x, -half, yNext);
+            writeVertex(x, -half, y, 0, -1, 0, u, v);
+            writeVertex(xNext, -half, y, 0, -1, 0, uNext, v);
+            writeVertex(x, -half, yNext, 0, -1, 0, u, vNext);
+            writeVertex(xNext, -half, y, 0, -1, 0, uNext, v);
+            writeVertex(xNext, -half, yNext, 0, -1, 0, uNext, vNext);
+            writeVertex(x, -half, yNext, 0, -1, 0, u, vNext);
 
             // Frente (z = half)
-            writeVertex(x, y, half); writeVertex(xNext, y, half); writeVertex(x, yNext, half);
-            writeVertex(xNext, y, half); writeVertex(xNext, yNext, half); writeVertex(x, yNext, half);
+            writeVertex(x, y, half, 0, 0, 1, u, v);
+            writeVertex(xNext, y, half, 0, 0, 1, uNext, v);
+            writeVertex(x, yNext, half, 0, 0, 1, u, vNext);
+            writeVertex(xNext, y, half, 0, 0, 1, uNext, v);
+            writeVertex(xNext, yNext, half, 0, 0, 1, uNext, vNext);
+            writeVertex(x, yNext, half, 0, 0, 1, u, vNext);
 
             // Trás (z = -half)
-            writeVertex(x, y, -half); writeVertex(x, yNext, -half); writeVertex(xNext, y, -half);
-            writeVertex(xNext, y, -half); writeVertex(x, yNext, -half); writeVertex(xNext, yNext, -half);
+            writeVertex(x, y, -half, 0, 0, -1, u, v);
+            writeVertex(x, yNext, -half, 0, 0, -1, u, vNext);
+            writeVertex(xNext, y, -half, 0, 0, -1, uNext, v);
+            writeVertex(xNext, y, -half, 0, 0, -1, uNext, v);
+            writeVertex(x, yNext, -half, 0, 0, -1, u, vNext);
+            writeVertex(xNext, yNext, -half, 0, 0, -1, uNext, vNext);
 
             // Direita (x = half)
-            writeVertex(half, y, x); writeVertex(half, yNext, x); writeVertex(half, y, xNext);
-            writeVertex(half, y, xNext); writeVertex(half, yNext, x); writeVertex(half, yNext, xNext);
+            writeVertex(half, y, x, 1, 0, 0, u, v);
+            writeVertex(half, yNext, x, 1, 0, 0, uNext, v);
+            writeVertex(half, y, xNext, 1, 0, 0, u, vNext);
+            writeVertex(half, y, xNext, 1, 0, 0, u, vNext);
+            writeVertex(half, yNext, x, 1, 0, 0, uNext, v);
+            writeVertex(half, yNext, xNext, 1, 0, 0, uNext, vNext);
 
             // Esquerda (x = -half)
-            writeVertex(-half, y, x); writeVertex(-half, y, xNext); writeVertex(-half, yNext, x);
-            writeVertex(-half, y, xNext); writeVertex(-half, yNext, xNext); writeVertex(-half, yNext, x);
+            writeVertex(-half, y, x, -1, 0, 0, u, v);
+            writeVertex(-half, y, xNext, -1, 0, 0, uNext, v);
+            writeVertex(-half, yNext, x, -1, 0, 0, u, vNext);
+            writeVertex(-half, y, xNext, -1, 0, 0, uNext, v);
+            writeVertex(-half, yNext, xNext, -1, 0, 0, uNext, vNext);
+            writeVertex(-half, yNext, x, -1, 0, 0, u, vNext);
         }
     }
     file.close();
@@ -159,29 +188,34 @@ void generatePlane(float size, int divisions, const std::string& filename) {
     // Escrevendo o número total de vértices no arquivo
     file << totalVertices << std::endl;
 
-    // Geração de vértices para cada divisão do plano e escrita direta no arquivo
+    // Geração de vértices para cada divisão do plano e escrita direta no arquivo com normais e texturas
     for (int i = 0; i < divisions; ++i) {
         for (int j = 0; j < divisions; ++j) {
             float x = (i * step) - half;
             float z = (j * step) - half;
+            float u = float(i) / divisions;
+            float v = float(j) / divisions;
+            float uNext = float(i + 1) / divisions;
+            float vNext = float(j + 1) / divisions;
 
-            // Ajustando a ordem dos vértices para que as normais apontem para cima
+            // Normal sempre aponta para cima, pois é um plano horizontal
+            float nx = 0, ny = 1, nz = 0;
+
             // Primeiro triângulo do quadrado
-            file << x << ", 0, " << z + step << std::endl;          // Superior esquerdo
-            file << x + step << ", 0, " << z << std::endl;          // Inferior direito
-            file << x << ", 0, " << z << std::endl;                 // Inferior esquerdo
+            file << x << ", 0, " << z + step << "; " << nx << ", " << ny << ", " << nz << "; " << u << ", " << vNext << std::endl;
+            file << x + step << ", 0, " << z << "; " << nx << ", " << ny << ", " << nz << "; " << uNext << ", " << v << std::endl;
+            file << x << ", 0, " << z << "; " << nx << ", " << ny << ", " << nz << "; " << u << ", " << v << std::endl;
 
             // Segundo triângulo do quadrado
-            file << x << ", 0, " << z + step << std::endl;          // Superior esquerdo
-            file << x + step << ", 0, " << z + step << std::endl;   // Superior direito
-            file << x + step << ", 0, " << z << std::endl;          // Inferior direito
+            file << x << ", 0, " << z + step << "; " << nx << ", " << ny << ", " << nz << "; " << u << ", " << vNext << std::endl;
+            file << x + step << ", 0, " << z + step << "; " << nx << ", " << ny << ", " << nz << "; " << uNext << ", " << vNext << std::endl;
+            file << x + step << ", 0, " << z << "; " << nx << ", " << ny << ", " << nz << "; " << uNext << ", " << v << std::endl;
         }
     }
 
     file.close();
     std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
-
 
 void generateCone(float radius, float height, int slices, int stacks, const std::string& filename) {
     fs::path outputPath = fs::current_path().parent_path() / "output";
@@ -190,49 +224,66 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
     }
 
     fs::path filePath = outputPath / filename;
-
     std::ofstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
     }
 
-    // Cada slice da base gera 3 vértices e cada stack de cada slice gera 6 vértices
-    int totalVertices = slices * 3 + slices * stacks * 6;
+    // Cada slice da base gera 6 vértices (3 para cada lado) e cada lado do cone gera 12 vértices (6 para cada lado)
+    int totalVertices = 2 * slices * 3 + 2 * slices * 6;
     file << totalVertices << std::endl;
 
-    // Ângulo entre cada slice
-    float deltaAngle = 2 * M_PI / slices;
-    // Diferença de altura entre cada stack
-    float deltaHeight = height / stacks;
+    float deltaAngle = 2 * M_PI / slices; // Ângulo entre cada slice
 
-    // Gerar a base do cone corrigida para ser visível de baixo
+    // Gerar a base do cone visível de baixo e de cima
     for (int i = 0; i < slices; ++i) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
-        // Inverte a ordem dos vértices da borda para a normal apontar para baixo
-        file << "0, 0, 0\n"; // Centro da base
-        file << radius * cos(angle) << ", 0, " << radius * sin(angle) << "\n"; // Ponto atual na borda
-        file << radius * cos(nextAngle) << ", 0, " << radius * sin(nextAngle) << "\n"; // Próximo ponto na borda
+        float x1 = radius * cos(angle), z1 = radius * sin(angle);
+        float x2 = radius * cos(nextAngle), z2 = radius * sin(nextAngle);
+
+        // Textura para a base
+        float s1 = 0.5 + 0.5 * cos(angle), t1 = 0.5 + 0.5 * sin(angle);
+        float s2 = 0.5 + 0.5 * cos(nextAngle), t2 = 0.5 + 0.5 * sin(nextAngle);
+
+        // Base visível de baixo
+        file << "0, 0, 0 ; 0, -1, 0 ; 0.5, 0.5\n";
+        file << x2 << ", 0, " << z2 << " ; 0, -1, 0 ; " << s2 << ", " << t2 << "\n";
+        file << x1 << ", 0, " << z1 << " ; 0, -1, 0 ; " << s1 << ", " << t1 << "\n";
+
+        // Base visível de cima
+        file << "0, 0, 0 ; 0, 1, 0 ; 0.5, 0.5\n";
+        file << x1 << ", 0, " << z1 << " ; 0, 1, 0 ; " << s1 << ", " << t1 << "\n";
+        file << x2 << ", 0, " << z2 << " ; 0, 1, 0 ; " << s2 << ", " << t2 << "\n";
     }
 
-    // Gerar os lados do cone
+    // Gerar os lados do cone visíveis de dentro e de fora
     for (int i = 0; i < slices; ++i) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
-        // Topo do cone
-        float tipX = 0, tipY = height, tipZ = 0; // Vértice do topo do cone
+        float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle);
+        float baseX2 = radius * cos(nextAngle), baseZ2 = radius * sin(nextAngle);
 
-        // Base do cone
-        float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle); // Ponto atual na borda da base
-        float baseX2 = radius * cos(nextAngle), baseZ2 = radius * sin(nextAngle); // Próximo ponto na borda da base
+        // Normal dos lados (aproximada)
+        float nx = cos((angle + nextAngle) / 2), nz = sin((angle + nextAngle) / 2);
 
-        // Triângulo que liga a base ao topo
-        file << tipX << ", " << tipY << ", " << tipZ << "\n"; // Topo
-        file << baseX2 << ", 0, " << baseZ2 << "\n"; // Próximo ponto na borda da base
-        file << baseX1 << ", 0, " << baseZ1 << "\n"; // Ponto atual na borda da base
+        // Textura para os lados
+        float s_top = 0.5, t_top = 1.0; // Topo do cone
+        float s_base1 = (float)i / slices, t_base1 = 0.0; // Base atual
+        float s_base2 = (float)(i + 1) / slices, t_base2 = 0.0; // Próxima base
+
+        // Lado visível de fora
+        file << "0, " << height << ", 0 ; " << nx << ", 0, " << nz << " ; " << s_top << ", " << t_top << "\n";
+        file << baseX1 << ", 0, " << baseZ1 << " ; " << nx << ", 0, " << nz << " ; " << s_base1 << ", " << t_base1 << "\n";
+        file << baseX2 << ", 0, " << baseZ2 << " ; " << nx << ", 0, " << nz << " ; " << s_base2 << ", " << t_base2 << "\n";
+
+        // Lado visível de dentro (inverter a ordem para inverter a normal)
+        file << "0, " << height << ", 0 ; " << -nx << ", 0, " << -nz << " ; " << s_top << ", " << t_top << "\n";
+        file << baseX2 << ", 0, " << baseZ2 << " ; " << -nx << ", 0, " << -nz << " ; " << s_base2 << ", " << t_base2 << "\n";
+        file << baseX1 << ", 0, " << baseZ1 << " ; " << -nx << ", 0, " << -nz << " ; " << s_base1 << ", " << t_base1 << "\n";
     }
 
     file.close();
@@ -252,46 +303,60 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
         std::cerr << "Não foi possível abrir o arquivo para escrita." << std::endl;
         return;
     }
-    if (slices <= 0)
-    {
+    if (slices <= 0) {
         std::cerr << "Não pode ter um slices <= 0" << std::endl;
         return;
     }
+
     // Ângulo entre cada slice
     float deltaAngle = 2 * M_PI / slices;
 
-    // Vertices 2faces * 2 triangulos * 3pontos
+    // Vertices 2 faces * 2 triangulos * 3 pontos
     int totalVertices = 2 * 2 * 3 * slices;
     file << totalVertices << std::endl;
 
-    // Função de vértices (para ser mais legivel)
-    auto writeVertex = [&](float angle, float radius) {
+    // Função de vértices (para ser mais legível)
+    auto writeVertex = [&](float angle, float radius, float nx, float nz, float u, float v) {
         float x = radius * cos(angle);
         float z = radius * sin(angle);
-        file << x << "," << 0.0 << "," << z << std::endl;
+        file << x << "," << 0.0 << "," << z << "; " << nx << "," << 0.0 << "," << nz << "; " << u << "," << v << std::endl;
         };
 
-    float pos = 0;
-    for (int i = 0; i < slices; i++, pos += deltaAngle) {
+    for (int i = 0; i < slices; i++) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
 
-        writeVertex(angle, ir);
-        writeVertex(angle, er);
-        writeVertex(nextAngle, ir);
+        float nx1 = cos(angle);
+        float nz1 = sin(angle);
+        float nx2 = cos(nextAngle);
+        float nz2 = sin(nextAngle);
 
-        writeVertex(nextAngle, ir);
-        writeVertex(angle, er);
-        writeVertex(nextAngle, er);
+        float u1 = float(i) / slices;
+        float u2 = float(i + 1) / slices;
+        float vInner = 0.0;  // Textura v para o raio interno
+        float vOuter = 1.0;  // Textura v para o raio externo
 
-        writeVertex(nextAngle, ir);
-        writeVertex(angle, er);
-        writeVertex(angle, ir);
+        // Primeira face do anel
+        writeVertex(angle, ir, nx1, nz1, u1, vInner);
+        writeVertex(angle, er, nx1, nz1, u1, vOuter);
+        writeVertex(nextAngle, ir, nx2, nz2, u2, vInner);
 
-        writeVertex(angle, er);
-        writeVertex(nextAngle, ir);
-        writeVertex(nextAngle, er);
+        writeVertex(nextAngle, ir, nx2, nz2, u2, vInner);
+        writeVertex(angle, er, nx1, nz1, u1, vOuter);
+        writeVertex(nextAngle, er, nx2, nz2, u2, vOuter);
+
+        // Segunda face do anel
+        writeVertex(nextAngle, ir, nx2, nz2, u2, vInner);
+        writeVertex(angle, er, nx1, nz1, u1, vOuter);
+        writeVertex(angle, ir, nx1, nz1, u1, vInner);
+
+        writeVertex(angle, er, nx1, nz1, u1, vOuter);
+        writeVertex(nextAngle, ir, nx2, nz2, u2, vInner);
+        writeVertex(nextAngle, er, nx2, nz2, u2, vOuter);
     }
+
+    file.close();
+    std::cout << "Arquivo '" << filename << "' criado com sucesso." << std::endl;
 }
 
 //Bezier//
@@ -324,12 +389,47 @@ Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4) 
     return newPonto(x, y, z);
 }
 
+// Derivada parcial em relação a 'u' usando diferença finita centrada
+Ponto derivative_u(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices) {
+    float h = 0.001; // Passo pequeno para a diferença finita
+    if (u + h > 1) h = -h; // Ajuste para evitar ultrapassar o limite quando u está próximo de 1
+
+    Ponto pointPlus = bezier(u + h, v, controlPoints, indices);
+    Ponto pointMinus = bezier(u - h, v, controlPoints, indices);
+
+    float dx = (getX(pointPlus) - getX(pointMinus)) / (2 * h);
+    float dy = (getY(pointPlus) - getY(pointMinus)) / (2 * h);
+    float dz = (getZ(pointPlus) - getZ(pointMinus)) / (2 * h);
+
+    return newPonto(dx, dy, dz);
+}
+
+// Derivada parcial em relação a 'v' usando diferença finita centrada
+Ponto derivative_v(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices) {
+    float h = 0.001; // Passo pequeno para a diferença finita
+    if (v + h > 1) h = -h; // Ajuste para evitar ultrapassar o limite quando v está próximo de 1
+
+    Ponto pointPlus = bezier(u, v + h, controlPoints, indices);
+    Ponto pointMinus = bezier(u, v - h, controlPoints, indices);
+
+    float dx = (getX(pointPlus) - getX(pointMinus)) / (2 * h);
+    float dy = (getY(pointPlus) - getY(pointMinus)) / (2 * h);
+    float dz = (getZ(pointPlus) - getZ(pointMinus)) / (2 * h);
+
+    return newPonto(dx, dy, dz);
+}
+
+Ponto normal_vector(Ponto tan_u, Ponto tan_v) {
+    float nx = getY(tan_u) * getZ(tan_v) - getZ(tan_u) * getY(tan_v);
+    float ny = getZ(tan_u) * getX(tan_v) - getX(tan_u) * getZ(tan_v);
+    float nz = getX(tan_u) * getY(tan_v) - getY(tan_u) * getX(tan_v);
+    return newPonto(nx, ny, nz);
+}
+
 void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFileName, int tessellation) {
     namespace fs = std::filesystem;
 
-    // Construindo o caminho completo para o arquivo de saída na pasta 'output'
     fs::path outputFilePath = fs::current_path() / "../output" / outputFileName;
-
     std::ifstream patchFile(patchFilePath);
     if (!patchFile.is_open()) {
         std::cerr << "Erro ao abrir arquivo de entrada!" << std::endl;
@@ -345,7 +445,6 @@ void generateBezierSurface(const std::string& patchFilePath, const std::string& 
     std::string line;
     getline(patchFile, line);
     int numPatches = std::stoi(line);
-
     std::vector<std::vector<int>> patches(numPatches);
     for (int i = 0; i < numPatches; ++i) {
         getline(patchFile, line);
@@ -361,7 +460,6 @@ void generateBezierSurface(const std::string& patchFilePath, const std::string& 
 
     getline(patchFile, line);
     int numControlPoints = std::stoi(line);
-
     std::vector<Ponto> controlPoints(numControlPoints);
     for (int i = 0; i < numControlPoints; ++i) {
         float x, y, z;
@@ -373,28 +471,41 @@ void generateBezierSurface(const std::string& patchFilePath, const std::string& 
     }
 
     std::stringstream ss;
-    float step = 1.0f / tessellation;
     int totalVertices = 0;
-
+    float step = 1.0f / tessellation;
     for (auto& patch : patches) {
-        for (float u = 0; u < 1.0f; u += step) {
-            for (float v = 0; v < 1.0f; v += step) {
+        for (float u = 0; u <= 1.0f; u += step) {
+            for (float v = 0; v <= 1.0f; v += step) {
                 Ponto p1 = bezier(u, v, controlPoints, patch);
                 Ponto p2 = bezier(u + step, v, controlPoints, patch);
                 Ponto p3 = bezier(u, v + step, controlPoints, patch);
                 Ponto p4 = bezier(u + step, v + step, controlPoints, patch);
 
-                ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << "\n";
-                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
-                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
-                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "\n";
-                ss << getX(p4) << "," << getY(p4) << "," << getZ(p4) << "\n";
-                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "\n";
+                Ponto tan_u1 = derivative_u(u, v, controlPoints, patch);
+                Ponto tan_v1 = derivative_v(u, v, controlPoints, patch);
+                Ponto normal1 = normal_vector(tan_u1, tan_v1);
 
-                deletePonto(p1);
-                deletePonto(p2);
-                deletePonto(p3);
-                deletePonto(p4);
+                // Primeiro triângulo
+                ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << " ; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                    << u << "," << v << std::endl;
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << " ; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                    << u + step << "," << v << std::endl;
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << " ; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                    << u << "," << v + step << std::endl;
+
+                // Segundo triângulo
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << " ; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                    << u << "," << v + step << std::endl;
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << " ; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                    << u + step << "," << v << std::endl;
+                ss << getX(p4) << "," << getY(p4) << "," << getZ(p4) << " ; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                    << u + step << "," << v + step << std::endl;
 
                 totalVertices += 6;
             }

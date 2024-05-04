@@ -27,5 +27,8 @@ Ponto bezier(float u, float v, Ponto* controlPoints, int* indices);
 Ponto readPonto(std::istream& stream);
 Ponto formulae(float t, Ponto point1, Ponto point2, Ponto point3, Ponto point4);
 void generateBezierSurface(const std::string& patchFilePath, const std::string& filename, int tessellation);
+Ponto derivative_u(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices);
+Ponto derivative_v(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices);
+Ponto normal_vector(Ponto tan_u, Ponto tan_v);
 
 #endif // GEOMETRY_H
