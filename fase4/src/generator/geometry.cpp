@@ -62,15 +62,27 @@ void generateSphere(float radius, int slices, int stacks, const std::string& fil
             float y4 = radius * cosf(nextPhi);
             float z4 = radius * sinf(nextPhi) * sinf(nextTheta);
 
+            // Coordenadas da normal
+            float nx1 = x1 / radius, ny1 = y1 / radius, nz1 = z1 / radius;
+            float nx2 = x2 / radius, ny2 = y2 / radius, nz2 = z2 / radius;
+            float nx3 = x3 / radius, ny3 = y3 / radius, nz3 = z3 / radius;
+            float nx4 = x4 / radius, ny4 = y4 / radius, nz4 = z4 / radius;
+
+            // Coordenadas de textura
+            float u1 = theta / (2 * M_PI), v1 = phi / M_PI;
+            float u2 = theta / (2 * M_PI), v2 = nextPhi / M_PI;
+            float u3 = nextTheta / (2 * M_PI), v3 = phi / M_PI;
+            float u4 = nextTheta / (2 * M_PI), v4 = nextPhi / M_PI;
+
             // Primeiro triângulo
-            file << x4 << "," << y4 << "," << z4 << "\n";
-            file << x2 << "," << y2 << "," << z2 << "\n";
-            file << x1 << "," << y1 << "," << z1 << "\n";
+            file << x4 << "," << y4 << "," << z4 << "; " << nx4 << "," << ny4 << "," << nz4 << "; " << u4 << "," << v4 << std::endl;
+            file << x2 << "," << y2 << "," << z2 << "; " << nx2 << "," << ny2 << "," << nz2 << "; " << u2 << "," << v2 << std::endl;
+            file << x1 << "," << y1 << "," << z1 << "; " << nx1 << "," << ny1 << "," << nz1 << "; " << u1 << "," << v1 << std::endl;
 
             // Segundo triângulo
-            file << x1 << "," << y1 << "," << z1 << "\n";
-            file << x3 << "," << y3 << "," << z3 << "\n";
-            file << x4 << "," << y4 << "," << z4 << "\n";
+            file << x1 << "," << y1 << "," << z1 << "; " << nx1 << "," << ny1 << "," << nz1 << "; " << u1 << "," << v1 << std::endl;
+            file << x3 << "," << y3 << "," << z3 << "; " << nx3 << "," << ny3 << "," << nz3 << "; " << u3 << "," << v3 << std::endl;
+            file << x4 << "," << y4 << "," << z4 << "; " << nx4 << "," << ny4 << "," << nz4 << "; " << u4 << "," << v4 << std::endl;
         }
     }
 

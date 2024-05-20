@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:fase2/configs/test_2_4.xml
 <world>
     <window width="512" height="512" />
     <camera> 
@@ -18,7 +17,7 @@
                 <translate x="3.5" y="0" z="0" />
             </transform>
 			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
+				<model file="..\output\new_sphere2.3d" /> <!-- generator box 2 3 box_2_3.3d -->
 			</models>
         </group>
         <group> 
@@ -27,7 +26,7 @@
                 <translate x="3.5" y="0" z="0" />
             </transform>
 			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
+				<model file="..\output\new_box.3d" /> <!-- generator box 2 3 box_2_3.3d -->
 			</models>
         </group>
         <group> 
@@ -36,7 +35,7 @@
                 <translate x="3.5" y="0" z="0" />
             </transform>
 			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
+				<model file="..\output\new_plane.3d" /> <!-- generator box 2 3 box_2_3.3d -->
 			</models>
         </group>
         <group> 
@@ -45,95 +44,24 @@
                 <translate x="3.5" y="0" z="0" />
             </transform>
 			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
+				<model file="..\output\new_cone.3d" /> <!-- generator box 2 3 box_2_3.3d -->
 			</models>
         </group>
-        <group> 
-            <transform> 
-                <rotate angle="225" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
+        <group>
+            <transform>
+                <translate time="50" align="true">
+                    <point x="80" y="0" z="-80" /> <!-- Ending Point of Comet -->
+                    <point x="-30" y="10" z="-30" /> <!-- Middle Point of Comet's Path -->
+                    <point x="-80" y="0" z="15" /> <!-- Middle Point of Comet's Path -->
+                    <point x="30" y="-10" z="80" /> <!-- Starting Point of Comet -->
+                </translate>
+                <!-- Animation: Move along the path -->
+                <rotate time="10" x="0" y="1" z="0" /> <!-- Rotation for Comet -->
+                <scale x="0.3" y="0.3" z="0.3" /> <!-- Comet's Size -->
             </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="270" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="315" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-	</group>
-========
-<world>
-    <window width="512" height="512" />
-    <camera> 
-	    <position x="3" y="10" z="4" />
-	    <lookAt x="0" y="0" z="0" />
-	    <up x="0" y="1" z="0" /> <!-- optional, use these values as default-->
-        <projection fov="60" near="1" far="1000" /> <!-- optional, use these values as default-->
-    </camera>
-
-    <group>
-        <transform> 
-            <translate x="0" y="1" z="0" />
-        </transform>
-        <group> 
-            <transform> 
-                <rotate angle="45" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="90" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="135" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="180" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="225" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
+            <models>
+                <model file="../output/new_bezier.3d" /> <!-- Comet Model -->
+            </models>
         </group>
         <group> 
             <transform> 
@@ -141,18 +69,8 @@
                 <translate x="3.5" y="0" z="0" />
             </transform>
 			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
-			</models>
-        </group>
-        <group> 
-            <transform> 
-                <rotate angle="315" x="0" y ="1" z = "0" />
-                <translate x="3.5" y="0" z="0" />
-            </transform>
-			<models> 
-				<model file="..\output\box_2_3.3d" /> <!-- generator box 2 3 box_2_3.3d -->
+				<model file="..\output\new_ring.3d" /> <!-- generator box 2 3 box_2_3.3d -->
 			</models>
         </group>
 	</group>
->>>>>>>> dev-pastore:fase4/configs/test_2_4.xml
 </world>
