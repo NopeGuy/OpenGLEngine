@@ -435,6 +435,12 @@ Ponto normal_vector(Ponto tan_u, Ponto tan_v) {
     float nx = getY(tan_u) * getZ(tan_v) - getZ(tan_u) * getY(tan_v);
     float ny = getZ(tan_u) * getX(tan_v) - getX(tan_u) * getZ(tan_v);
     float nz = getX(tan_u) * getY(tan_v) - getY(tan_u) * getX(tan_v);
+
+    //Normalizar a normal
+    float magnitude = sqrt(nx * nx + ny * ny + nz * nz);
+    nx /= magnitude;
+    ny /= magnitude;
+    nz /= magnitude;
     return newPonto(nx, ny, nz);
 }
 

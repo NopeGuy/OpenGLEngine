@@ -54,8 +54,18 @@ struct Transform {
     std::vector<Position> points;
 };
 
+struct Color {
+    std::string type;
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
+    float value = 0.f;
+};
+
 struct ModelFile {
     std::string fileName;
+    std::string textureName;
+    std::vector<Color> colors;
 };
 
 struct Group {
@@ -64,10 +74,18 @@ struct Group {
     std::vector<Group> children;
 };
 
+struct Light {
+    std::string type;
+    std::vector<float> position;
+    std::vector<float> direction;
+    float cutoff; // Only applicable for spotlight
+};
+
 struct Parser {
     Window window;
     Camera camera;
     Group rootNode;
+    std::vector<Light> lights;
 };
 
 void parseWindowSettings(tinyxml2::XMLElement* windowElement, Window& window);

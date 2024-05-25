@@ -3,22 +3,26 @@
 using namespace std;
 
 struct figura{
-    List pontos; // lista de pontos
+    vector<Ponto>* pontos;
+    vector<Ponto>* normais; 
+    vector<Ponto>* pontosText;
 };
 
 Figura newEmptyFigura(){
     Figura r = (Figura)malloc(sizeof(struct figura));
     if(r != NULL){
-        r->pontos = newEmptyList();
+        r->pontos = new vector<Ponto>();
+        r->normais = new vector<Ponto>();
+        r->pontosText = new vector<Ponto>();
     }
     return r;
 }
 
-Figura newFigura(List pontos){
+Figura newFigura(vector<Ponto> pontos){
     Figura r = newEmptyFigura();
     if(r != NULL){
-        for(unsigned long i = 0; i < getListLength(pontos); i++){
-            addPonto(r, (Ponto)getListElemAt(pontos,i));
+        for(unsigned long i = 0; i < pontos.size(); i++){
+            addPonto(r, pontos[i]);
         }
     }
     return r;
@@ -26,36 +30,48 @@ Figura newFigura(List pontos){
 
 void addPonto(Figura f, Ponto p){
     if(f){
-        addValueList(f->pontos, p);
+        f->pontos->push_back(p);
+    }
+}
+
+void addNormais(Figura f, Ponto normais) {
+    if (f) {
+        f->normais->push_back(normais);
+    }
+}
+
+void addPontosText(Figura f, Ponto texturas) {
+    if (f) {
+        f->pontosText->push_back(texturas);
     }
 }
 
 void addPontos(Figura f, Figura toAdd){
     if(f){
-        List pontos = toAdd->pontos;
-        for(unsigned long i = 0; i < getListLength(pontos); i++){
-            addValueList(f->pontos,getListElemAt(pontos,i));
+        vector<Ponto>* pontos = toAdd->pontos;
+        for(Ponto p: *pontos){
+            addPonto(f, p);
         }
     }
 }
 
-void figuraToFile(Figura f, const char* path){
-    if(!f){
-        printf("A figura está vazia na chamada a FiguraToFile.\n");
-        return;
+void addPontoNormais(Figura f, Ponto ponto = NULL, Ponto normais = NULL) {
+    if (ponto) addPonto(f, ponto);
+    if (normais) {
+        normalizePonto(normais);
+        addNormais(f, normais);
     }
-    FILE* file = fopen(path, "w");
-    if (!file){
-        printf("Ocorreu um erro na abertura do ficheiro '%s'\n", path);
-        return;
-    }
-    fprintf(file,"%lu\n",getListLength(f->pontos));
-    for(unsigned long i = 0; i < getListLength(f->pontos); i++){
-        Ponto p = (Ponto)getListElemAt(f->pontos, i);
-        fprintf(file, "%g,%g,%g\n", getX(p), getY(p), getZ(p));
-    }
-    fclose(file);
 }
+
+void addPontoNormaisTextura(Figura f, Ponto ponto = NULL, Ponto normais = NULL,Ponto texturas = NULL) {
+    if (ponto) addPonto(f, ponto);
+    if (normais) {
+        normalizePonto(normais);
+        addNormais(f, normais);
+    }
+    if (texturas) addPontosText(f, texturas);
+}
+
 
 Figura fileToFigura(const char* path) {
     Figura f = newEmptyFigura();
@@ -67,35 +83,46 @@ Figura fileToFigura(const char* path) {
         float x, y, z, vx, vy, vz, u, v;
         for (int i = 0; i < vertices; i++) {
             fgets(buffer, 1023, file);
-            sscanf(buffer, "%f,%f,%f ; %f %f %f ; %f %f", &x, &y, &z, &vx, &vy, &vz, &u, &v);
-            addPonto(f, newPonto(x, y, z));
+            sscanf(buffer, "%f,%f,%f; %f,%f,%f; %f,%f", &x, &y, &z, &vx, &vy, &vz, &u, &v);
+            addPontoNormaisTextura(f, newPonto(x, y, z), newPonto(vx, vy, vz), newPonto(u, v, 0.0f));
         }
         fclose(file);
     }
     return f;
 }
 
-
-List getPontos(Figura f){
-    if(f){
-        return f->pontos;
+vector<float> getPontos(Figura f) {
+    vector<float> pontos;
+    if (f) {
+        vector<Ponto>* figuraPontos = f->pontos;
+        for (Ponto p : *figuraPontos) {
+            pontos.push_back(getX(p));
+            pontos.push_back(getY(p));
+            pontos.push_back(getZ(p));
+        }
     }
-    return NULL;
+    return pontos;
+}
+
+vector<float> getNormais(Figura f) {
+    vector<float> pontos;
+    if (f) {
+        vector<Ponto>* figuraPontos = f->pontos;
+        for (Ponto p : *figuraPontos) {
+            pontos.push_back(getX(p));
+            pontos.push_back(getY(p));
+            pontos.push_back(getZ(p));
+        }
+    }
+    return pontos;
 }
 
 void deleteFigura(void* figura){
     if(figura){
-        for(unsigned long i = 0; i < getListLength(((Figura)figura)->pontos); i++){
-            deletePonto((Ponto)getListElemAt(((Figura)figura)->pontos,i));
+        for(Ponto p : *((Figura)figura)->pontos){
+            deletePonto(p);
         }
-        deleteList(((Figura)figura)->pontos);
-        free(figura);
-    }
-}
-
-void deleteFigura2(void* figura){
-    if(figura){
-        deleteList(((Figura)figura)->pontos);
+        delete ((Figura)figura)->pontos;
         free(figura);
     }
 }
