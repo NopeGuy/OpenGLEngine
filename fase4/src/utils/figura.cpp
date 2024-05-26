@@ -107,7 +107,7 @@ vector<float> getPontos(Figura f) {
 vector<float> getNormais(Figura f) {
     vector<float> pontos;
     if (f) {
-        vector<Ponto>* figuraPontos = f->pontos;
+        vector<Ponto>* figuraPontos = f->normais;
         for (Ponto p : *figuraPontos) {
             pontos.push_back(getX(p));
             pontos.push_back(getY(p));

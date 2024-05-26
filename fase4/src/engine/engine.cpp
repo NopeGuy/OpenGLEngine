@@ -138,6 +138,7 @@ void importFiguras(List figs)//TODO: Modificar
 	for (unsigned long i = 0; i < getListLength(figs); i++)
 	{
 		glGenBuffers(i + 1, &bufferId[i]);
+		glGenBuffers(i + 1, &buuferNId[i]);
 		Figura fig = (Figura)getListElemAt(figs, i);
 		vector<float> vVertices = getPontos(fig);
 		vector<float> vNormais = getNormais(fig);
@@ -157,11 +158,10 @@ void drawFigures(int startpos, int endpos)
 { 
 	for (unsigned long i = startpos; i < endpos; i++)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, buuferNId[i]);
-		glNormalPointer(GL_FLOAT, 0, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
-
+		glBindBuffer(GL_ARRAY_BUFFER, buuferNId[i]);
+		glNormalPointer(GL_FLOAT, 0, 0);
 		// Set the color
 		//glColor3f(colors[i].r, colors[i].g, colors[i].b);
 		// Draw the figure
@@ -293,18 +293,18 @@ void drawGroups(const Group *group)
 			executeTransformations(transform);
 		}
 
+		GLfloat vColors[4];
 		endpos = startpos + group->modelFiles.size();
 		// printf(group->modelFiles.size() > 0 ? "Drawing %d model(s)\n" : "No models to draw\n", group->modelFiles.size());
 		if(lightingOn==1){
 			for (int i = 0; i < group->modelFiles.size();i++)
 			{
 				ModelFile m = group->modelFiles[i];
-				GLfloat vColors[4];
                 auto adjustVColors = [&m, &vColors](int i) {
-                    vColors[0] = m.colors[i].r;
-                    vColors[1] = m.colors[i].g;
-                    vColors[2] = m.colors[i].b;
-                    vColors[3] = m.colors[i].value;
+                    vColors[0] = m.colors[i].r / 255;
+                    vColors[1] = m.colors[i].g / 255;
+                    vColors[2] = m.colors[i].b / 255;
+                    vColors[3] = 1.0f;
                 };
 				adjustVColors(0);
 				glMaterialfv(GL_FRONT, GL_DIFFUSE, vColors);
@@ -333,7 +333,9 @@ void drawGroups(const Group *group)
 void lighting(vector<Light>* lights) {
 	std::vector<Light> lightVec = *lights;
 	Light luz;
-	for (int i = 0; i < lights->size(); i++) {
+	int numLights = lights->size();
+	GLfloat white[4] = { 1.0f,1.0f,1.0f,1.0f };
+	for (int i = 0; i <numLights; i++) {
 		luz = lightVec[i];
 		GLenum label = GL_LIGHT0 + i; //TODO: Verificar se funciona assim
 
@@ -354,6 +356,10 @@ void lighting(vector<Light>* lights) {
 		else {
 			std::cerr << "Light type not correctly defined! Light: " << i;
 		}
+
+		glEnable(label);
+		glLightfv(label, GL_DIFFUSE, white);
+		glLightfv(label, GL_SPECULAR, white);
 	}
 }
 
@@ -486,19 +492,13 @@ void keyProc(unsigned char key, int x, int y)
 void enableLights() {
 	int numLights = settings->lights.size();
 	if (numLights == 0) exit(0); //Verifica se n há luzes
+	glEnable(GL_LIGHTING);
+	glEnable(GL_RESCALE_NORMAL);
 	if (numLights > 8) { //É o número máximo suportado
 		std::cerr << "XML exceeds maximum number of lights (8)! Number received: " + numLights;
 		exit(1);
 	}
-	GLenum label;
-	GLfloat white[4] = { 1.0f,1.0f,1.0f,0.4f };
-	float amb[4] = { 1.0f,1.0f,1.0f,0.4f };
-    for (int i = 0; i < numLights; i++) {
-		label = GL_LIGHT0 + i;
-		glEnable(label);
-		glLightfv(label, GL_DIFFUSE, white);
-		glLightfv(label, GL_SPECULAR, white);
-    }
+	float amb[4] = { 1.0f,1.0f,1.0f,1.0f };
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
 }
 
@@ -536,8 +536,6 @@ int main(int argc, char *argv[])
 
 	fillList(&settings->rootNode);
 
-	if (settings->lights.size() > 0)
-		lightingOn = 1;
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -545,14 +543,25 @@ int main(int argc, char *argv[])
 	glutInitWindowSize(800, 800);
 	glutCreateWindow("Engine");
 	glewInit();
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
 	glutIdleFunc(renderScene);
 	glutKeyboardFunc(keyProc);
 	glutSpecialFunc(specKeyProc);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+	
+	if (settings->lights.size() > 0)
+		lightingOn = 1;
 	enableLights();
+
 	importFiguras(figuras);
 	/* Colors
 	colors.push_back({1.0f, 1.0f, 0.0f}); // Yellow for Sun
@@ -571,8 +580,6 @@ int main(int argc, char *argv[])
 	//	drawGroups(&settings->rootNode);
 
 	// OpenGL settings
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	// enter GLUT's main cycle
 	glutMainLoop();
