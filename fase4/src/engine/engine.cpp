@@ -341,7 +341,7 @@ void lighting(vector<Light>* lights) {
 
 		luz.position.push_back(1.0f);
 		luz.direction.push_back(0.0f);
-		if (luz.type.compare("positional")==0) {
+		if (luz.type.compare("point")==0) {
 			glLightfv(label, GL_POSITION, luz.position.data());
 		}
 		else if (luz.type.compare("directional")==0) {
