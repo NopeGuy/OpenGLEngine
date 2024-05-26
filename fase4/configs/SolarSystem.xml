@@ -6,28 +6,51 @@
         <up x="0" y="1" z="0" />
         <projection fov="30" near="1" far="1000" />
     </camera>
+
+    <lights>
+        <light type="point" posx="0" posy="0" posz="0" />
+    </lights>
+
     <group>
         <!-- Sun -->
         <group>
             <transform>
-                <scale x="16" y="16" z="16"/> <!-- Sun's Size -->
-                <rotate time="20" x="0" y="1" z="0" /> <!-- Animation: Rotate around its axis -->
+                <scale x="16" y="16" z="16" />
+                <rotate time="20" x="0" y="1" z="0" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" /> <!-- Sun Model -->
+                <model file="sphere_1_10_10.3d">
+                    <texture file="sun.jpg" />
+                    <color>
+                        <diffuse R="0" G="0" B="0" />
+                        <ambient R="0" G="0" B="0" />
+                        <specular R="0" G="0" B="0" />
+                        <emissive R="255" G="255" B="255" />
+                        <shininess value="0" />
+                    </color>
+                </model>
             </models>
         </group>
 
         <!-- Mercury -->
         <group>
             <transform>
-                <rotate time="7.2" x="0" y="1" z="0" /> <!-- Animation: Rotate around its axis -->
-                <translate x="25" y="0" z="0" /> <!-- Distance from Sun -->
-                <rotate time="3" x="0" y="1" z="0" /> <!-- Animation: Rotation around the sun -->
-                <scale x="0.38" y="0.38" z="0.38"/>
+                <rotate time="7.2" x="0" y="1" z="0" />
+                <translate x="25" y="0" z="0" />
+                <rotate time="3" x="0" y="1" z="0" />
+                <scale x="0.38" y="0.38" z="0.38" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="mercury.jpg" />
+                    <color>
+                        <diffuse R="50" G="50" B="50" />
+                        <ambient R="50" G="50" B="50" />
+                        <specular R="100" G="100" B="100" />
+                        <emissive R="0" G="0" B="0" />
+                        <shininess value="0" />
+                    </color>
+                </model>
             </models>
         </group>
 
@@ -35,12 +58,14 @@
         <group>
             <transform>
                 <rotate time="19.93" x="0" y="1" z="0" />
-                <translate x="40" y="0" z="0"/> 
+                <translate x="40" y="0" z="0" />
                 <rotate time="4" x="0" y="1" z="0" />
-                <scale x="0.95" y="0.95" z="0.95"/>
+                <scale x="0.95" y="0.95" z="0.95" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="venus.jpg" />
+                </model>
             </models>
         </group>
 
@@ -48,23 +73,26 @@
         <group>
             <transform>
                 <rotate time="30" x="0" y="1" z="0" />
-                <translate x="55" y="0" z="0"/>
-                <rotate time="5" x="0" y="1" z="0" /> 
+                <translate x="55" y="0" z="0" />
+                <rotate time="5" x="0" y="1" z="0" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="earth.jpg" />
+                </model>
             </models>
 
             <!-- Moon -->
             <group>
                 <transform>
-                    <translate x="5" y="0" z="0"/> <!-- Distance from Earth -->
-                    <!-- Animation: Orbit around the Earth -->
+                    <translate x="5" y="0" z="0" />
                     <rotate time="5" x="0" y="1" z="0" />
-                    <scale x="0.273" y="0.273" z="0.273"/> <!-- Moon's Size -->
+                    <scale x="0.273" y="0.273" z="0.273" />
                 </transform>
                 <models>
-                    <model file="../output/sphere.3d" /> <!-- Moon Model -->
+                    <model file="sphere_1_10_10.3d">
+                        <texture file="moon.jpg" />
+                    </model>
                 </models>
             </group>
         </group>
@@ -73,12 +101,14 @@
         <group>
             <transform>
                 <rotate time="32" x="0" y="1" z="0" />
-                <translate x="70" y="0" z="0"/>
+                <translate x="70" y="0" z="0" />
                 <rotate time="6" x="0" y="1" z="0" />
-                <scale x="0.53" y="0.53" z="0.53"/>
+                <scale x="0.53" y="0.53" z="0.53" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="mars.jpg" />
+                </model>
             </models>
         </group>
 
@@ -86,12 +116,14 @@
         <group>
             <transform>
                 <rotate time="50" x="0" y="1" z="0" />
-                <translate x="105" y="0" z="0"/>
+                <translate x="105" y="0" z="0" />
                 <rotate time="30" x="0" y="1" z="0" />
-                <scale x="11" y="11" z="11"/>
+                <scale x="11" y="11" z="11" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="jupiter.jpg" />
+                </model>
             </models>
         </group>
 
@@ -99,23 +131,26 @@
         <group>
             <transform>
                 <rotate time="60" x="0" y="1" z="0" />
-                <translate x="134" y="0" z="0"/>
+                <translate x="134" y="0" z="0" />
                 <rotate time="40" x="0" y="1" z="0" />
-                <scale x="9" y="9" z="9"/>
+                <scale x="9" y="9" z="9" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="saturn.jpg" />
+                </model>
             </models>
 
             <!-- Saturn's Ring -->
             <group>
                 <transform>
-                    <rotate angle="10" x="1" y="0" z="1" /> <!-- Rotation of the Ring -->
-                    <scale x="0.15" y="0.15" z="0.15" /> <!-- Size of the Ring -->
+                    <rotate angle="10" x="1" y="0" z="1" />
+                    <scale x="0.15" y="0.15" z="0.15" />
                     <rotate time="35" x="0" y="1" z="0" />
                 </transform>
                 <models>
-                    <model file="../output/ring.3d" /> <!-- Saturn's Ring Model -->
+                    <model file="ring.3d">
+                    </model>
                 </models>
             </group>
         </group>
@@ -124,12 +159,14 @@
         <group>
             <transform>
                 <rotate time="90" x="0" y="1" z="0" />
-                <translate x="153" y="0" z="0"/>
-                <rotate time="70" x="0" y="1" z="0" />
-                <scale x="4" y="4" z="4"/>
+                <translate x="153" y="0" z="0" />
+                <rotate time="40" x="0" y="1" z="0" />
+                <scale x="4" y="4" z="4" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="uranus.jpg" />
+                </model>
             </models>
         </group>
 
@@ -137,12 +174,14 @@
         <group>
             <transform>
                 <rotate time="95" x="0" y="1" z="0" />
-                <translate x="168" y="0" z="0"/>
-                <rotate time="75" x="0" y="1" z="0" />
-                <scale x="3.86" y="3.86" z="3.86"/>
+                <translate x="168" y="0" z="0" />
+                <rotate time="44" x="0" y="1" z="0" />
+                <scale x="3.86" y="3.86" z="3.86" />
             </transform>
             <models>
-                <model file="../output/sphere.3d" />
+                <model file="sphere_1_10_10.3d">
+                    <texture file="neptune.jpg" />
+                </model>
             </models>
         </group>
 
@@ -150,17 +189,18 @@
         <group>
             <transform>
                 <translate time="50" align="true">
-                    <point x="80" y="0" z="-80" /> <!-- Ending Point of Comet -->
-                    <point x="-30" y="10" z="-30" /> <!-- Middle Point of Comet's Path -->
-                    <point x="-80" y="0" z="15" /> <!-- Middle Point of Comet's Path -->
-                    <point x="30" y="-10" z="80" /> <!-- Starting Point of Comet -->
+                    <point x="0" y="-10" z="-80" />
+                    <point x="-30" y="0" z="-50" />
+                    <point x="-40" y="0" z="-10" />
+                    <point x="0" y="10" z="100" />
+                    <point x="60" y="0" z="0" />
                 </translate>
-                <!-- Animation: Move along the path -->
-                <rotate time="10" x="0" y="1" z="0" /> <!-- Rotation for Comet -->
-                <scale x="0.3" y="0.3" z="0.3" /> <!-- Comet's Size -->
+                <scale x="0.3" y="0.3" z="0.3" />
             </transform>
             <models>
-                <model file="../output/bezier_10.3d" /> <!-- Comet Model -->
+                <model file="bezier_10.3d">
+                    <texture file="surprise.jpg" />
+                </model>
             </models>
         </group>
     </group>

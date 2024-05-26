@@ -242,7 +242,6 @@ void drawFigures(int startpos, int endpos)
 		// Draw the figure
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
 		//drawNormais(i);
-
 	}
 
 	if (endpos == figCount)
@@ -403,6 +402,7 @@ void drawGroups(const Group* group)
 			}
 		}
 		drawFigures(startpos, endpos); // Draw the figure(s)
+		// reset colors
 		
 
 		// Render child groups
@@ -449,7 +449,6 @@ void lighting(vector<Light>* lights)
 		{
 			std::cerr << "Light type not correctly defined! Light: " << i;
 		}
-
 		glEnable(label);
 		glLightfv(label, GL_DIFFUSE, white);
 		glLightfv(label, GL_SPECULAR, white);
@@ -587,7 +586,7 @@ void enableLights()
 {
 	int numLights = settings->lights.size();
 	if (numLights == 0)
-		exit(0); // Verifica se n há luzes
+		return; // Verifica se n há luzes
 	glEnable(GL_LIGHTING);
 	glEnable(GL_RESCALE_NORMAL);
 	if (numLights > 8)
@@ -659,7 +658,6 @@ int main(int argc, char* argv[])
 	enableLights();
 
 	importFiguras(figuras);
-	//	drawGroups(&settings->rootNode);
 
 	// OpenGL settings
 

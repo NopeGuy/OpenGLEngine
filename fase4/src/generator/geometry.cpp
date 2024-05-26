@@ -180,6 +180,8 @@ void generateBox(float size, int divisions, const std::string& filename) {
 }
 
 void generatePlane(float size, int divisions, const std::string& filename) {
+    size *= 2; // Duplicar o tamanho do plano
+
     fs::path outputPath = fs::current_path().parent_path() / "output";
     if (!fs::exists(outputPath)) {
         fs::create_directories(outputPath);
@@ -214,14 +216,14 @@ void generatePlane(float size, int divisions, const std::string& filename) {
             float nx = 0, ny = 1, nz = 0;
 
             // Primeiro triângulo do quadrado
-            file << x << ", 0, " << z + step << "; " << nx << ", " << ny << ", " << nz << "; " << u << ", " << vNext << std::endl;
-            file << x + step << ", 0, " << z << "; " << nx << ", " << ny << ", " << nz << "; " << uNext << ", " << v << std::endl;
-            file << x << ", 0, " << z << "; " << nx << ", " << ny << ", " << nz << "; " << u << ", " << v << std::endl;
+            file << x << ",0," << z + step << "; " << nx << "," << ny << "," << nz << "; " << u << "," << vNext << std::endl;
+            file << x + step << ",0," << z << "; " << nx << "," << ny << "," << nz << "; " << uNext << "," << v << std::endl;
+            file << x << ",0," << z << "; " << nx << "," << ny << "," << nz << "; " << u << "," << v << std::endl;
 
             // Segundo triângulo do quadrado
-            file << x << ", 0, " << z + step << "; " << nx << ", " << ny << ", " << nz << "; " << u << ", " << vNext << std::endl;
-            file << x + step << ", 0, " << z + step << "; " << nx << ", " << ny << ", " << nz << "; " << uNext << ", " << vNext << std::endl;
-            file << x + step << ", 0, " << z << "; " << nx << ", " << ny << ", " << nz << "; " << uNext << ", " << v << std::endl;
+            file << x << ",0," << z + step << "; " << nx << "," << ny << "," << nz << "; " << u << "," << vNext << std::endl;
+            file << x + step << ",0," << z + step << "; " << nx << "," << ny << "," << nz << "; " << uNext << "," << vNext << std::endl;
+            file << x + step << ",0," << z << "; " << nx << "," << ny << "," << nz << "; " << uNext << "," << v << std::endl;
         }
     }
 
@@ -243,12 +245,12 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
     }
 
     // Cada slice da base gera 6 vértices (3 para cada lado) e cada lado do cone gera 12 vértices (6 para cada lado)
-    int totalVertices = 2 * slices * 3 + 2 * slices * 6;
-    file << totalVertices << std::endl;
+    float totalVertices = 2.0f * slices * 3.0f + 2.0f * slices * 6.0f;
+    file << totalVertices << "\n";
 
-    float deltaAngle = 2 * M_PI / slices; // Ângulo entre cada slice
+    float deltaAngle = 2.0f * M_PI / slices; // Ângulo entre cada slice
 
-    // Gerar a base do cone visível de baixo e de cima
+    // Gerar a base do cone com normais inclinadas 45 graus
     for (int i = 0; i < slices; ++i) {
         float angle = i * deltaAngle;
         float nextAngle = (i + 1) * deltaAngle;
@@ -256,19 +258,27 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         float x1 = radius * cos(angle), z1 = radius * sin(angle);
         float x2 = radius * cos(nextAngle), z2 = radius * sin(nextAngle);
 
+        // Normal ajustada para 45 graus
+        float normFactor = sqrt(2.0f) / 2.0f;
+        float nx1 = -normFactor * cos(angle);
+        float nz1 = -normFactor * sin(angle);
+        float nx2 = -normFactor * cos(nextAngle);
+        float nz2 = -normFactor * sin(nextAngle);
+        float ny = normFactor;
+
         // Textura para a base
-        float s1 = 0.5 + 0.5 * cos(angle), t1 = 0.5 + 0.5 * sin(angle);
-        float s2 = 0.5 + 0.5 * cos(nextAngle), t2 = 0.5 + 0.5 * sin(nextAngle);
+        float s1 = 0.5f + 0.5f * cos(angle), t1 = 0.5f + 0.5f * sin(angle);
+        float s2 = 0.5f + 0.5f * cos(nextAngle), t2 = 0.5f + 0.5f * sin(nextAngle);
 
-        // Base visível de baixo
-        file << "0, 0, 0 ; 0, -1, 0 ; 0.5, 0.5\n";
-        file << x2 << ", 0, " << z2 << " ; 0, -1, 0 ; " << s2 << ", " << t2 << "\n";
-        file << x1 << ", 0, " << z1 << " ; 0, -1, 0 ; " << s1 << ", " << t1 << "\n";
+        // Base visível de baixo com normais invertidas
+        file << "0.0,0.0,0.0; 0.0," << ny << ",0.0; 0.5,0.5\n";
+        file << x2 << ",0.0," << z2 << "; " << nx2 << "," << ny << "," << nz2 << "; " << s2 << "," << t2 << "\n";
+        file << x1 << ",0.0," << z1 << "; " << nx1 << "," << ny << "," << nz1 << "; " << s1 << "," << t1 << "\n";
 
-        // Base visível de cima
-        file << "0, 0, 0 ; 0, 1, 0 ; 0.5, 0.5\n";
-        file << x1 << ", 0, " << z1 << " ; 0, 1, 0 ; " << s1 << ", " << t1 << "\n";
-        file << x2 << ", 0, " << z2 << " ; 0, 1, 0 ; " << s2 << ", " << t2 << "\n";
+        // Base visível de cima com normais invertidas
+        file << "0.0,0.0,0.0; 0.0," << -ny << ",0.0; 0.5,0.5\n";
+        file << x1 << ",0.0," << z1 << "; " << -nx1 << "," << -ny << "," << -nz1 << "; " << s1 << "," << t1 << "\n";
+        file << x2 << ",0.0," << z2 << "; " << -nx2 << "," << -ny << "," << -nz2 << "; " << s2 << "," << t2 << "\n";
     }
 
     // Gerar os lados do cone visíveis de dentro e de fora
@@ -279,23 +289,30 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle);
         float baseX2 = radius * cos(nextAngle), baseZ2 = radius * sin(nextAngle);
 
-        // Normal dos lados (aproximada)
-        float nx = cos((angle + nextAngle) / 2), nz = sin((angle + nextAngle) / 2);
+        // Normal ajustada para formar 45 graus
+        float norm = sqrt(height * height + radius * radius);
+        float nx1 = -(baseX1 / radius);
+        float nz1 = -(baseZ1 / radius);
+        float ny1 = -(radius / height);
+
+        float nx2 = -(baseX2 / radius);
+        float nz2 = -(baseZ2 / radius);
+        float ny2 = -(radius / height);
 
         // Textura para os lados
-        float s_top = 0.5, t_top = 1.0; // Topo do cone
-        float s_base1 = (float)i / slices, t_base1 = 0.0; // Base atual
-        float s_base2 = (float)(i + 1) / slices, t_base2 = 0.0; // Próxima base
+        float s_top = 0.5f, t_top = 1.0f; // Topo do cone
+        float s_base1 = (float)i / (float)slices, t_base1 = 0.0f; // Base atual
+        float s_base2 = (float)(i + 1) / (float)slices, t_base2 = 0.0f; // Próxima base
 
-        // Lado visível de fora
-        file << "0, " << height << ", 0 ; " << nx << ", 0, " << nz << " ; " << s_top << ", " << t_top << "\n";
-        file << baseX1 << ", 0, " << baseZ1 << " ; " << nx << ", 0, " << nz << " ; " << s_base1 << ", " << t_base1 << "\n";
-        file << baseX2 << ", 0, " << baseZ2 << " ; " << nx << ", 0, " << nz << " ; " << s_base2 << ", " << t_base2 << "\n";
+        // Lado visível de fora com normais invertidas
+        file << "0.0," << height << ",0.0; " << nx1 << "," << ny1 << "," << nz1 << "; " << s_top << "," << t_top << "\n";
+        file << baseX1 << ",0.0," << baseZ1 << "; " << nx1 << "," << ny1 << "," << nz1 << "; " << s_base1 << "," << t_base1 << "\n";
+        file << baseX2 << ",0.0," << baseZ2 << "; " << nx2 << "," << ny2 << "," << nz2 << "; " << s_base2 << "," << t_base2 << "\n";
 
-        // Lado visível de dentro (inverter a ordem para inverter a normal)
-        file << "0, " << height << ", 0 ; " << -nx << ", 0, " << -nz << " ; " << s_top << ", " << t_top << "\n";
-        file << baseX2 << ", 0, " << baseZ2 << " ; " << -nx << ", 0, " << -nz << " ; " << s_base2 << ", " << t_base2 << "\n";
-        file << baseX1 << ", 0, " << baseZ1 << " ; " << -nx << ", 0, " << -nz << " ; " << s_base1 << ", " << t_base1 << "\n";
+        // Lado visível de dentro com normais invertidas (inverter a ordem para inverter a normal)
+        file << "0.0," << height << ",0.0; " << -nx1 << "," << -ny1 << "," << -nz1 << "; " << s_top << "," << t_top << "\n";
+        file << baseX2 << ",0.0," << baseZ2 << "; " << -nx2 << "," << -ny2 << "," << -nz2 << "; " << s_base2 << "," << t_base2 << "\n";
+        file << baseX1 << ",0.0," << baseZ1 << "; " << -nx1 << "," << -ny1 << "," << -nz1 << "; " << s_base1 << "," << t_base1 << "\n";
     }
 
     file.close();
@@ -373,6 +390,14 @@ void generateRing(float ir, float er, int slices, const std::string& filename) {
 
 //Bezier//
 
+Ponto crossProduct(Ponto a, Ponto b) {
+    return newPonto(
+        getY(a) * getZ(b) - getZ(a) * getY(b),
+        getZ(a) * getX(b) - getX(a) * getZ(b),
+        getX(a) * getY(b) - getY(a) * getX(b)
+    );
+}
+
 Ponto bezier(float u, float v, std::vector<Ponto>& controlPoints, std::vector<int>& indices) {
     std::vector<Ponto> tempPoints(4);
     for (int i = 0; i < 4; i++) {
@@ -431,22 +456,7 @@ Ponto derivative_v(float u, float v, std::vector<Ponto>& controlPoints, std::vec
     return newPonto(dx, dy, dz);
 }
 
-Ponto normal_vector(Ponto tan_u, Ponto tan_v) {
-    float nx = getY(tan_u) * getZ(tan_v) - getZ(tan_u) * getY(tan_v);
-    float ny = getZ(tan_u) * getX(tan_v) - getX(tan_u) * getZ(tan_v);
-    float nz = getX(tan_u) * getY(tan_v) - getY(tan_u) * getX(tan_v);
-
-    //Normalizar a normal
-    float magnitude = sqrt(nx * nx + ny * ny + nz * nz);
-    nx /= magnitude;
-    ny /= magnitude;
-    nz /= magnitude;
-    return newPonto(nx, ny, nz);
-}
-
 void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFileName, int tessellation) {
-    namespace fs = std::filesystem;
-
     fs::path outputFilePath = fs::current_path() / "../output" / outputFileName;
     std::ifstream patchFile(patchFilePath);
     if (!patchFile.is_open()) {
@@ -492,8 +502,8 @@ void generateBezierSurface(const std::string& patchFilePath, const std::string& 
     int totalVertices = 0;
     float step = 1.0f / tessellation;
     for (auto& patch : patches) {
-        for (float u = 0; u <= 1.0f; u += step) {
-            for (float v = 0; v <= 1.0f; v += step) {
+        for (float u = 0; u < 1.0f; u += step) {
+            for (float v = 0; v < 1.0f; v += step) {
                 Ponto p1 = bezier(u, v, controlPoints, patch);
                 Ponto p2 = bezier(u + step, v, controlPoints, patch);
                 Ponto p3 = bezier(u, v + step, controlPoints, patch);
@@ -501,28 +511,29 @@ void generateBezierSurface(const std::string& patchFilePath, const std::string& 
 
                 Ponto tan_u1 = derivative_u(u, v, controlPoints, patch);
                 Ponto tan_v1 = derivative_v(u, v, controlPoints, patch);
-                Ponto normal1 = normal_vector(tan_u1, tan_v1);
+                Ponto normal1 = crossProduct(tan_u1, tan_v1);
+                //normalizePonto(normal1);
 
                 // Primeiro triângulo
-                ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << " ; "
-                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << "; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << "; "
                     << u << "," << v << std::endl;
-                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << " ; "
-                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << "; "
                     << u + step << "," << v << std::endl;
-                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << " ; "
-                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << "; "
                     << u << "," << v + step << std::endl;
 
                 // Segundo triângulo
-                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << " ; "
-                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                ss << getX(p3) << "," << getY(p3) << "," << getZ(p3) << "; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << "; "
                     << u << "," << v + step << std::endl;
-                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << " ; "
-                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                ss << getX(p2) << "," << getY(p2) << "," << getZ(p2) << "; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << "; "
                     << u + step << "," << v << std::endl;
-                ss << getX(p4) << "," << getY(p4) << "," << getZ(p4) << " ; "
-                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << " ; "
+                ss << getX(p4) << "," << getY(p4) << "," << getZ(p4) << "; "
+                    << getX(normal1) << "," << getY(normal1) << "," << getZ(normal1) << "; "
                     << u + step << "," << v + step << std::endl;
 
                 totalVertices += 6;

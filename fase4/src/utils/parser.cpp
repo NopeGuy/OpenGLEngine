@@ -236,7 +236,7 @@ void parseModel(tinyxml2::XMLElement* modelsElement, std::vector<Model>& models)
 
     const char* modelFileName = modelElement->Attribute("file");
     if (modelFileName)
-        model.fileName = modelFileName;
+        model.fileName = "../output/" + std::string(modelFileName);
 
     tinyxml2::XMLElement* textureElement = modelElement->FirstChildElement("texture");
     if (textureElement) {
