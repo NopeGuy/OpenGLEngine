@@ -18,14 +18,13 @@ void addPonto(Figura, Ponto);
 
 void addPontos(Figura, Figura);
 
-void figuraToFile(Figura, const char*);
-
 Figura fileToFigura(const char*);
 
-List getPontos(Figura);
+vector<float> getPontos(Figura f);
+
+vector<float> getNormais(Figura f);
 
 void deleteFigura(void*);
 
-void deleteFigura2(void*);
 
 #endif // FIGURA

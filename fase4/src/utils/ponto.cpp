@@ -60,6 +60,14 @@ float distance(Ponto p1, Ponto p2){
     return sqrt(dx*dx + dy*dy + dz*dz);
 }
 
+void normalizePonto(Ponto p) {
+    float x = getX(p), y = getY(p), z = getZ(p);
+    float l = sqrt(x * x + y * y + z * z);
+    p->x /= l;
+    p->y /= l;
+    p->z /= l;
+}
+
 Ponto dupPonto(Ponto ponto){
     return newPonto(ponto->x, ponto->y, ponto->z);
 }

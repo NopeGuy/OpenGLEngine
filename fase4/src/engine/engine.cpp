@@ -43,6 +43,8 @@ GLuint *buffers = NULL;	   // temos um buffer para cada figura
 int info[100];			   // aqui guardamos o tamanho de cada buffer de cada figura
 unsigned int figCount = 0; // total de figuras existentes no ficheiro de configuração.
 GLuint bufferId[100];	   // buffer id
+GLuint *buffersN = NULL;
+GLuint buuferNId[100];
 
 // Códigos de cores
 #define RED 1.0f, 0.0f, 0.0f
@@ -72,6 +74,9 @@ float far = 0.0f;
 // Window Settings
 int width = 0;
 int height = 0;
+
+// Lighting Settings
+int lightingOn = 0;
 
 // File Settings
 std::string fileName = "";
@@ -125,7 +130,7 @@ void fillList(const Group *group)
 	}
 }
 
-void importFiguras(List figs)
+void importFiguras(List figs)//TODO: Modificar
 {
 	figCount = getListLength(figs);
 
@@ -133,24 +138,19 @@ void importFiguras(List figs)
 	for (unsigned long i = 0; i < getListLength(figs); i++)
 	{
 		glGenBuffers(i + 1, &bufferId[i]);
+		glGenBuffers(i + 1, &buuferNId[i]);
 		Figura fig = (Figura)getListElemAt(figs, i);
-		List figPontos = getPontos(fig);
-		vector<float> vVertices;
+		vector<float> vVertices = getPontos(fig);
+		vector<float> vNormais = getNormais(fig);
 
-		// Iterate through the list of points in the figure and populate vVertices
-		for (unsigned long j = 0; j < getListLength(figPontos); j++)
-		{
-			Ponto point = (Ponto)getListElemAt(figPontos, j);
-			vVertices.push_back(getX(point));
-			vVertices.push_back(getY(point));
-			vVertices.push_back(getZ(point));
-		}
 		// Calculate the number of vertices
 		info[i] = (vVertices.size() / 3);
 
 		// Bind the buffer and fill it with data
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
 		glBufferData(GL_ARRAY_BUFFER, vVertices.size() * sizeof(float), vVertices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, buuferNId[i]);
+		glBufferData(GL_ARRAY_BUFFER, vNormais.size() * sizeof(float), vNormais.data(), GL_STATIC_DRAW);
 	}
 }
 
@@ -160,6 +160,8 @@ void drawFigures(int startpos, int endpos)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
 		glVertexPointer(3, GL_FLOAT, 0, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, buuferNId[i]);
+		glNormalPointer(GL_FLOAT, 0, 0);
 		// Set the color
 		//glColor3f(colors[i].r, colors[i].g, colors[i].b);
 		// Draw the figure
@@ -211,8 +213,10 @@ void executeTransformations(const Transform &transform)
 			float t = fmod(NOW - init_time, t_time) / t_time;
 			float pos[3];
 			float deriv[3];
+			if (lightingOn == 1) glDisable(GL_LIGHTING);
 			GlobalCatRomPoint(t, px, py, pz, pos, deriv);
 			displayCatmullRom(px, py, pz);
+			if (lightingOn == 1) glEnable(GL_LIGHTING);
 			glTranslatef(pos[0], pos[1], pos[2]);
 
 			if (transform.align == true)
@@ -251,6 +255,7 @@ void executeTransformations(const Transform &transform)
 // Desenha os eixos, caso a flag esteja ativa.
 void drawEixos()
 {
+	if (lightingOn == 1) glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	// X axis in red
 	glColor3f(RED);
@@ -266,6 +271,7 @@ void drawEixos()
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glColor3f(WHITE);
 	glEnd();
+	if(lightingOn == 1) glEnable(GL_LIGHTING);
 }
 
 void drawTeapot()
@@ -287,8 +293,30 @@ void drawGroups(const Group *group)
 			executeTransformations(transform);
 		}
 
+		GLfloat vColors[4];
 		endpos = startpos + group->modelFiles.size();
 		// printf(group->modelFiles.size() > 0 ? "Drawing %d model(s)\n" : "No models to draw\n", group->modelFiles.size());
+		if(lightingOn==1){
+			for (int i = 0; i < group->modelFiles.size();i++)
+			{
+				ModelFile m = group->modelFiles[i];
+                auto adjustVColors = [&m, &vColors](int i) {
+                    vColors[0] = m.colors[i].r / 255;
+                    vColors[1] = m.colors[i].g / 255;
+                    vColors[2] = m.colors[i].b / 255;
+                    vColors[3] = 1.0f;
+                };
+				adjustVColors(0);
+				glMaterialfv(GL_FRONT, GL_DIFFUSE, vColors);
+				adjustVColors(1);
+				glMaterialfv(GL_FRONT, GL_AMBIENT, vColors);
+				adjustVColors(2);
+				glMaterialfv(GL_FRONT, GL_SPECULAR, vColors);
+				adjustVColors(3);
+				glMaterialfv(GL_FRONT, GL_EMISSION, vColors);
+				glMaterialf(GL_FRONT, GL_SHININESS, m.colors[4].value);
+			}
+		}
 		drawFigures(startpos, endpos); // Draw the figure(s)
 
 		// Render child groups
@@ -302,6 +330,39 @@ void drawGroups(const Group *group)
 	}
 }
 
+void lighting(vector<Light>* lights) {
+	std::vector<Light> lightVec = *lights;
+	Light luz;
+	int numLights = lights->size();
+	GLfloat white[4] = { 1.0f,1.0f,1.0f,1.0f };
+	for (int i = 0; i <numLights; i++) {
+		luz = lightVec[i];
+		GLenum label = GL_LIGHT0 + i; //TODO: Verificar se funciona assim
+
+		luz.position.push_back(1.0f);
+		luz.direction.push_back(0.0f);
+		if (luz.type.compare("point")==0) {
+			glLightfv(label, GL_POSITION, luz.position.data());
+		}
+		else if (luz.type.compare("directional")==0) {
+			glLightfv(label, GL_POSITION, luz.direction.data());
+		}
+		else if (luz.type.compare("spotlight")==0) {
+			glLightfv(label, GL_POSITION, luz.position.data());
+			glLightfv(label, GL_SPOT_DIRECTION, luz.direction.data());
+			glLightf(label, GL_SPOT_CUTOFF, luz.cutoff);
+			glLightf(label, GL_SPOT_EXPONENT, 0.0);
+		}
+		else {
+			std::cerr << "Light type not correctly defined! Light: " << i;
+		}
+
+		glEnable(label);
+		glLightfv(label, GL_DIFFUSE, white);
+		glLightfv(label, GL_SPECULAR, white);
+	}
+}
+
 void renderScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -310,6 +371,7 @@ void renderScene(void)
 	gluLookAt(camx, camy, camz, lookAtx, lookAty, lookAtz, upx, upy, upz);
 
 	glColor3f(1.0f, 1.0f, 1.0f);
+	if(lightingOn==1)lighting(&settings->lights);
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
 
 	glPushMatrix();
@@ -427,6 +489,21 @@ void keyProc(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
+void enableLights() {
+	int numLights = settings->lights.size();
+	if (numLights == 0) exit(0); //Verifica se n há luzes
+	glEnable(GL_LIGHTING);
+	glEnable(GL_RESCALE_NORMAL);
+	if (numLights > 8) { //É o número máximo suportado
+		std::cerr << "XML exceeds maximum number of lights (8)! Number received: " + numLights;
+		exit(1);
+	}
+	float amb[4] = { 1.0f,1.0f,1.0f,1.0f };
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
+}
+
+
+
 int main(int argc, char *argv[])
 {
 	if (argc != 2)
@@ -459,19 +536,31 @@ int main(int argc, char *argv[])
 
 	fillList(&settings->rootNode);
 
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(800, 800);
 	glutCreateWindow("Engine");
 	glewInit();
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+
 	glutDisplayFunc(renderScene);
 	glutReshapeFunc(changeSize);
 	glutIdleFunc(renderScene);
 	glutKeyboardFunc(keyProc);
 	glutSpecialFunc(specKeyProc);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+	
+	if (settings->lights.size() > 0)
+		lightingOn = 1;
+	enableLights();
 
 	importFiguras(figuras);
 	/* Colors
@@ -491,8 +580,6 @@ int main(int argc, char *argv[])
 	//	drawGroups(&settings->rootNode);
 
 	// OpenGL settings
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 	// enter GLUT's main cycle
 	glutMainLoop();

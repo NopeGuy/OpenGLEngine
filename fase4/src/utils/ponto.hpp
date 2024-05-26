@@ -25,4 +25,6 @@ Ponto dupPonto(Ponto);
 
 void deletePonto(Ponto p);
 
+void normalizePonto(Ponto p);
+
 #endif // PONTO

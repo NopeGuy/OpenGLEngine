@@ -53,8 +53,8 @@ struct Group {
 
 struct Light {
     std::string type;
-    Point position;
-    Point direction;
+    std::vector<float> position;
+    std::vector<float> direction;
     float cutoff; // Only applicable for spotlight
 };
 
@@ -121,28 +121,28 @@ void parseLights(tinyxml2::XMLElement* lightElement, std::vector<Light>& lights)
         switch (type[0]) {
         case 'p': { // point
             l.type = type;
-            l.position.x = atof(light->Attribute("posx"));
-            l.position.y = atof(light->Attribute("posy"));
-            l.position.z = atof(light->Attribute("posz"));
+            l.position.push_back(atof(light->Attribute("posx")));
+            l.position.push_back(atof(light->Attribute("posy")));
+            l.position.push_back(atof(light->Attribute("posz")));
             break;
         }
 
         case 'd': { // directional
             l.type = type;
-            l.direction.x = atof(light->Attribute("dirx"));
-            l.direction.y = atof(light->Attribute("diry"));
-            l.direction.z = atof(light->Attribute("dirz"));
+            l.direction.push_back(atof(light->Attribute("dirx")));
+            l.direction.push_back(atof(light->Attribute("diry")));
+            l.direction.push_back(atof(light->Attribute("dirz")));
             break;
         }
 
         case 's': { // spotlight
             l.type = type;
-            l.position.x = atof(light->Attribute("posx"));
-            l.position.y = atof(light->Attribute("posy"));
-            l.position.z = atof(light->Attribute("posz"));
-            l.direction.x = atof(light->Attribute("dirx"));
-            l.direction.y = atof(light->Attribute("diry"));
-            l.direction.z = atof(light->Attribute("dirz"));
+            l.position.push_back(atof(light->Attribute("posx")));
+            l.position.push_back(atof(light->Attribute("posy")));
+            l.position.push_back(atof(light->Attribute("posz")));
+            l.direction.push_back(atof(light->Attribute("dirx")));
+            l.direction.push_back(atof(light->Attribute("diry")));
+            l.direction.push_back(atof(light->Attribute("dirz")));
             l.cutoff = atof(light->Attribute("cutoff"));
             break;
         }
@@ -400,8 +400,10 @@ void print(const Parser& parser) {
     std::cout << "Lights:\n";
     for (const auto& light : parser.lights) {
         std::cout << "Type: " << light.type << std::endl;
-        std::cout << "Position: (" << light.position.x << ", " << light.position.y << ", " << light.position.z << ")" << std::endl;
-        std::cout << "Direction: (" << light.direction.x << ", " << light.direction.y << ", " << light.direction.z << ")" << std::endl;
+        if(light.position.size()>0)
+        std::cout << "Position: (" << light.position.at(0) << ", " << light.position.at(1) << ", " << light.position.at(2) << ")" << std::endl;
+        if(light.direction.size()>0)
+        std::cout << "Direction: (" << light.direction.at(0) << ", " << light.direction.at(1) << ", " << light.direction.at(2) << ")" << std::endl;
         if (light.type == "spotlight") {
             std::cout << "Cutoff: " << light.cutoff << std::endl;
         }
