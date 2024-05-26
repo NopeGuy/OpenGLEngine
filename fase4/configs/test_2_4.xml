@@ -44,7 +44,7 @@
                 <translate x="3.5" y="0" z="0" />
             </transform>
 			<models> 
-				<model file="..\output\new_cone.3d" /> <!-- generator box 2 3 box_2_3.3d -->
+				<model file="..\output\light_cone.3d" /> <!-- generator box 2 3 box_2_3.3d -->
 			</models>
         </group>
         <group>
@@ -60,7 +60,7 @@
                 <scale x="0.3" y="0.3" z="0.3" /> <!-- Comet's Size -->
             </transform>
             <models>
-                <model file="../output/new_bezier.3d" /> <!-- Comet Model -->
+                <model file="../output/light_teapot.3d" /> <!-- Comet Model -->
             </models>
         </group>
         <group> 

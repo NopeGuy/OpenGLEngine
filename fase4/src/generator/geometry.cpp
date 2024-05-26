@@ -279,8 +279,11 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         float baseX1 = radius * cos(angle), baseZ1 = radius * sin(angle);
         float baseX2 = radius * cos(nextAngle), baseZ2 = radius * sin(nextAngle);
 
-        // Normal dos lados (aproximada)
-        float nx = cos((angle + nextAngle) / 2), nz = sin((angle + nextAngle) / 2);
+        // Normal dos lados (precisa ser calculada corretamente)
+        float nx1 = baseX1 / sqrt(baseX1 * baseX1 + height * height);
+        float nz1 = baseZ1 / sqrt(baseZ1 * baseZ1 + height * height);
+        float nx2 = baseX2 / sqrt(baseX2 * baseX2 + height * height);
+        float nz2 = baseZ2 / sqrt(baseZ2 * baseZ2 + height * height);
 
         // Textura para os lados
         float s_top = 0.5, t_top = 1.0; // Topo do cone
@@ -288,14 +291,14 @@ void generateCone(float radius, float height, int slices, int stacks, const std:
         float s_base2 = (float)(i + 1) / slices, t_base2 = 0.0; // Próxima base
 
         // Lado visível de fora
-        file << "0, " << height << ", 0 ; " << nx << ", 0, " << nz << " ; " << s_top << ", " << t_top << "\n";
-        file << baseX1 << ", 0, " << baseZ1 << " ; " << nx << ", 0, " << nz << " ; " << s_base1 << ", " << t_base1 << "\n";
-        file << baseX2 << ", 0, " << baseZ2 << " ; " << nx << ", 0, " << nz << " ; " << s_base2 << ", " << t_base2 << "\n";
+        file << "0, " << height << ", 0 ; " << nx1 << ", " << (height / sqrt(baseX1 * baseX1 + height * height)) << ", " << nz1 << " ; " << s_top << ", " << t_top << "\n";
+        file << baseX1 << ", 0, " << baseZ1 << " ; " << nx1 << ", " << (height / sqrt(baseX1 * baseX1 + height * height)) << ", " << nz1 << " ; " << s_base1 << ", " << t_base1 << "\n";
+        file << baseX2 << ", 0, " << baseZ2 << " ; " << nx2 << ", " << (height / sqrt(baseX2 * baseX2 + height * height)) << ", " << nz2 << " ; " << s_base2 << ", " << t_base2 << "\n";
 
         // Lado visível de dentro (inverter a ordem para inverter a normal)
-        file << "0, " << height << ", 0 ; " << -nx << ", 0, " << -nz << " ; " << s_top << ", " << t_top << "\n";
-        file << baseX2 << ", 0, " << baseZ2 << " ; " << -nx << ", 0, " << -nz << " ; " << s_base2 << ", " << t_base2 << "\n";
-        file << baseX1 << ", 0, " << baseZ1 << " ; " << -nx << ", 0, " << -nz << " ; " << s_base1 << ", " << t_base1 << "\n";
+        file << "0, " << height << ", 0 ; " << -nx1 << ", " << (-height / sqrt(baseX1 * baseX1 + height * height)) << ", " << -nz1 << " ; " << s_top << ", " << t_top << "\n";
+        file << baseX2 << ", 0, " << baseZ2 << " ; " << -nx2 << ", " << (-height / sqrt(baseX2 * baseX2 + height * height)) << ", " << -nz2 << " ; " << s_base2 << ", " << t_base2 << "\n";
+        file << baseX1 << ", 0, " << baseZ1 << " ; " << -nx1 << ", " << (-height / sqrt(baseX1 * baseX1 + height * height)) << ", " << -nz1 << " ; " << s_base1 << ", " << t_base1 << "\n";
     }
 
     file.close();
@@ -438,6 +441,12 @@ Ponto normal_vector(Ponto tan_u, Ponto tan_v) {
     return newPonto(nx, ny, nz);
 }
 
+Ponto normalize(Ponto v) {
+    float length = sqrt(getX(v) * getX(v) + getY(v) * getY(v) + getZ(v) * getZ(v));
+    return newPonto(getX(v) / length, getY(v) / length, getZ(v) / length);
+}
+
+
 void generateBezierSurface(const std::string& patchFilePath, const std::string& outputFileName, int tessellation) {
     namespace fs = std::filesystem;
 
@@ -495,7 +504,7 @@ void generateBezierSurface(const std::string& patchFilePath, const std::string& 
 
                 Ponto tan_u1 = derivative_u(u, v, controlPoints, patch);
                 Ponto tan_v1 = derivative_v(u, v, controlPoints, patch);
-                Ponto normal1 = normal_vector(tan_u1, tan_v1);
+                Ponto normal1 = normalize(normal_vector(tan_u1, tan_v1));
 
                 // Primeiro triângulo
                 ss << getX(p1) << "," << getY(p1) << "," << getZ(p1) << " ; "
