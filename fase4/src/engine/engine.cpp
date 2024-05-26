@@ -382,7 +382,7 @@ void drawGroups(const Group* group)
 			for (int i = 0; i < group->modelFiles.size(); i++)
 			{
 				ModelFile m = group->modelFiles[i];
-				if (m.colors.size() == 0)
+				if(m.colors.size() == 0)
 					continue;
 				auto adjustVColors = [&m, &vColors](int i)
 					{
@@ -403,7 +403,7 @@ void drawGroups(const Group* group)
 			}
 		}
 		drawFigures(startpos, endpos); // Draw the figure(s)
-
+		
 
 		// Render child groups
 		for (const auto& child : group->children)

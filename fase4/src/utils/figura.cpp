@@ -83,7 +83,6 @@ void addTextura(Figura f, const char* textura) {
 Figura fileToFigura(const char* path, const char* text) {
     Figura f = newEmptyFigura();
     FILE* file = fopen(path, "r");
-    addTextura(f, text);
     if (f && file) {
         char buffer[1024];
         fgets(buffer, 1023, file);
@@ -94,6 +93,7 @@ Figura fileToFigura(const char* path, const char* text) {
             sscanf(buffer, "%f,%f,%f; %f,%f,%f; %f,%f", &x, &y, &z, &vx, &vy, &vz, &u, &v);
             addPontoNormaisTextura(f, newPonto(x, y, z), newPonto(vx, vy, vz), newPonto(u, v, 0.0f));
         }
+        addTextura(f, text);
         fclose(file);
     }
     return f;
