@@ -27,23 +27,21 @@ GLuint verticeCount;
 GLuint vertices = 0;
 static int startpos = 0;
 static int endpos = 0;
-
-/*
-// Structure to save the color of the figure
-float r, g, b;
-struct Color
+// Structure to save vertices and normals of each figure
+struct TupleVector
 {
-	float r, g, b;
+	std::vector<float> v1;
+	std::vector<float> v2;
 };
-vector<Color> colors;
-*/
+// list of TupleVector
+std::vector<TupleVector> tupleVectorList;
 
 // VBO's
-GLuint *buffers = NULL;	   // temos um buffer para cada figura
+GLuint* buffers = NULL;	   // temos um buffer para cada figura
 int info[100];			   // aqui guardamos o tamanho de cada buffer de cada figura
 unsigned int figCount = 0; // total de figuras existentes no ficheiro de configuração.
 GLuint bufferId[100];	   // buffer id
-GLuint *buffersN = NULL;
+GLuint* buffersN = NULL;
 GLuint buuferNId[100];
 
 // Códigos de cores
@@ -114,7 +112,7 @@ void changeSize(int w, int h)
 
 // fill lists
 
-void fillList(const Group *group)
+void fillList(const Group* group)
 {
 	if (group != nullptr)
 	{
@@ -122,15 +120,15 @@ void fillList(const Group *group)
 
 		for (int i = 0; i < modelLength; i++)
 		{
-			const char *fileChar = group->modelFiles.at(i).fileName.c_str();
+			const char* fileChar = group->modelFiles.at(i).fileName.c_str();
 			addValueList(figuras, fileToFigura(fileChar));
 		}
-		for (const auto &child : group->children)
+		for (const auto& child : group->children)
 			fillList(&child);
 	}
 }
 
-void importFiguras(List figs)//TODO: Modificar
+void importFiguras(List figs) // TODO: Modificar
 {
 	figCount = getListLength(figs);
 
@@ -142,7 +140,8 @@ void importFiguras(List figs)//TODO: Modificar
 		Figura fig = (Figura)getListElemAt(figs, i);
 		vector<float> vVertices = getPontos(fig);
 		vector<float> vNormais = getNormais(fig);
-
+		// save to global variables
+		tupleVectorList.push_back({ vVertices, vNormais });
 		// Calculate the number of vertices
 		info[i] = (vVertices.size() / 3);
 
@@ -154,8 +153,25 @@ void importFiguras(List figs)//TODO: Modificar
 	}
 }
 
+void drawNormais(int i)
+{
+	TupleVector tv = tupleVectorList[i];
+	vector<float> vVerticesG = tv.v1;
+	vector<float> vNormaisG = tv.v2;
+	glDisable(GL_LIGHTING); // Disable lighting
+	glColor3f(1.0f, 0.0f, 0.0f); // Set color to red
+	glBegin(GL_LINES);
+	for (unsigned long i = 0; i < vVerticesG.size(); i += 3)
+	{
+		glVertex3f(vVerticesG[i], vVerticesG[i + 1], vVerticesG[i + 2]);
+		glVertex3f(vVerticesG[i] + vNormaisG[i], vVerticesG[i + 1] + vNormaisG[i + 1], vVerticesG[i + 2] + vNormaisG[i + 2]);
+	}
+	glEnd();
+	glEnable(GL_LIGHTING); // Enable lighting again
+}
+
 void drawFigures(int startpos, int endpos)
-{ 
+{
 	for (unsigned long i = startpos; i < endpos; i++)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId[i]);
@@ -163,11 +179,12 @@ void drawFigures(int startpos, int endpos)
 		glBindBuffer(GL_ARRAY_BUFFER, buuferNId[i]);
 		glNormalPointer(GL_FLOAT, 0, 0);
 		// Set the color
-		//glColor3f(colors[i].r, colors[i].g, colors[i].b);
+		// glColor3f(colors[i].r, colors[i].g, colors[i].b);
 		// Draw the figure
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
+		drawNormais(i);
 	}
-	
+
 	if (endpos == figCount)
 	{
 		startpos = 0;
@@ -179,7 +196,7 @@ void drawFigures(int startpos, int endpos)
 }
 
 // Function to execute transformations
-void executeTransformations(const Transform &transform)
+void executeTransformations(const Transform& transform)
 {
 	float x = transform.x;
 	float y = transform.y;
@@ -204,7 +221,7 @@ void executeTransformations(const Transform &transform)
 			vector<float> px;
 			vector<float> py;
 			vector<float> pz;
-			for (const auto &point : t_points)
+			for (const auto& point : t_points)
 			{
 				px.push_back(point.x);
 				py.push_back(point.y);
@@ -213,17 +230,19 @@ void executeTransformations(const Transform &transform)
 			float t = fmod(NOW - init_time, t_time) / t_time;
 			float pos[3];
 			float deriv[3];
-			if (lightingOn == 1) glDisable(GL_LIGHTING);
+			if (lightingOn == 1)
+				glDisable(GL_LIGHTING);
 			GlobalCatRomPoint(t, px, py, pz, pos, deriv);
 			displayCatmullRom(px, py, pz);
-			if (lightingOn == 1) glEnable(GL_LIGHTING);
+			if (lightingOn == 1)
+				glEnable(GL_LIGHTING);
 			glTranslatef(pos[0], pos[1], pos[2]);
 
 			if (transform.align == true)
 			{
 				float rot[16];
-				float *X = deriv;
-				float Y[3] = {0, 1, 0}; // Variável que define a normal do objeto
+				float* X = deriv;
+				float Y[3] = { 0, 1, 0 }; // Variável que define a normal do objeto
 				float Z[3];
 
 				// Z = X x Y
@@ -255,7 +274,8 @@ void executeTransformations(const Transform &transform)
 // Desenha os eixos, caso a flag esteja ativa.
 void drawEixos()
 {
-	if (lightingOn == 1) glDisable(GL_LIGHTING);
+	if (lightingOn == 1)
+		glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	// X axis in red
 	glColor3f(RED);
@@ -271,7 +291,8 @@ void drawEixos()
 	glVertex3f(0.0f, 0.0f, 100.0f);
 	glColor3f(WHITE);
 	glEnd();
-	if(lightingOn == 1) glEnable(GL_LIGHTING);
+	if (lightingOn == 1)
+		glEnable(GL_LIGHTING);
 }
 
 void drawTeapot()
@@ -283,12 +304,12 @@ void drawTeapot()
 	glPopMatrix();
 }
 
-void drawGroups(const Group *group)
+void drawGroups(const Group* group)
 {
 	if (group != nullptr)
 	{
 		glPushMatrix(); // Push the current matrix onto the stack
-		for (const auto &transform : group->transforms)
+		for (const auto& transform : group->transforms)
 		{
 			executeTransformations(transform);
 		}
@@ -296,16 +317,18 @@ void drawGroups(const Group *group)
 		GLfloat vColors[4];
 		endpos = startpos + group->modelFiles.size();
 		// printf(group->modelFiles.size() > 0 ? "Drawing %d model(s)\n" : "No models to draw\n", group->modelFiles.size());
-		if(lightingOn==1){
-			for (int i = 0; i < group->modelFiles.size();i++)
+		if (lightingOn == 1)
+		{
+			for (int i = 0; i < group->modelFiles.size(); i++)
 			{
 				ModelFile m = group->modelFiles[i];
-                auto adjustVColors = [&m, &vColors](int i) {
-                    vColors[0] = m.colors[i].r / 255;
-                    vColors[1] = m.colors[i].g / 255;
-                    vColors[2] = m.colors[i].b / 255;
-                    vColors[3] = 1.0f;
-                };
+				auto adjustVColors = [&m, &vColors](int i)
+					{
+						vColors[0] = m.colors[i].r / 255;
+						vColors[1] = m.colors[i].g / 255;
+						vColors[2] = m.colors[i].b / 255;
+						vColors[3] = 1.0f;
+					};
 				adjustVColors(0);
 				glMaterialfv(GL_FRONT, GL_DIFFUSE, vColors);
 				adjustVColors(1);
@@ -320,40 +343,47 @@ void drawGroups(const Group *group)
 		drawFigures(startpos, endpos); // Draw the figure(s)
 
 		// Render child groups
-		for (const auto &child : group->children)
+		for (const auto& child : group->children)
 		{
 			startpos = endpos;
 			drawGroups(&child);
 		}
-		if (group->children.size() == 0) startpos = 0;
+		if (group->children.size() == 0)
+			startpos = 0;
 		glPopMatrix(); // Restore the previous matrix
 	}
 }
 
-void lighting(vector<Light>* lights) {
+void lighting(vector<Light>* lights)
+{
 	std::vector<Light> lightVec = *lights;
 	Light luz;
 	int numLights = lights->size();
-	GLfloat white[4] = { 1.0f,1.0f,1.0f,1.0f };
-	for (int i = 0; i <numLights; i++) {
+	GLfloat white[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	for (int i = 0; i < numLights; i++)
+	{
 		luz = lightVec[i];
-		GLenum label = GL_LIGHT0 + i; //TODO: Verificar se funciona assim
+		GLenum label = GL_LIGHT0 + i; // TODO: Verificar se funciona assim
 
 		luz.position.push_back(1.0f);
 		luz.direction.push_back(0.0f);
-		if (luz.type.compare("point")==0) {
+		if (luz.type.compare("point") == 0)
+		{
 			glLightfv(label, GL_POSITION, luz.position.data());
 		}
-		else if (luz.type.compare("directional")==0) {
+		else if (luz.type.compare("directional") == 0)
+		{
 			glLightfv(label, GL_POSITION, luz.direction.data());
 		}
-		else if (luz.type.compare("spotlight")==0) {
+		else if (luz.type.compare("spotlight") == 0)
+		{
 			glLightfv(label, GL_POSITION, luz.position.data());
 			glLightfv(label, GL_SPOT_DIRECTION, luz.direction.data());
 			glLightf(label, GL_SPOT_CUTOFF, luz.cutoff);
 			glLightf(label, GL_SPOT_EXPONENT, 0.0);
 		}
-		else {
+		else
+		{
 			std::cerr << "Light type not correctly defined! Light: " << i;
 		}
 
@@ -371,7 +401,8 @@ void renderScene(void)
 	gluLookAt(camx, camy, camz, lookAtx, lookAty, lookAtz, upx, upy, upz);
 
 	glColor3f(1.0f, 1.0f, 1.0f);
-	if(lightingOn==1)lighting(&settings->lights);
+	if (lightingOn == 1)
+		lighting(&settings->lights);
 	glPolygonMode(GL_FRONT_AND_BACK, mode);
 
 	glPushMatrix();
@@ -456,25 +487,25 @@ void keyProc(unsigned char key, int x, int y)
 		radius += 1.0f;
 		break;
 	}
-	case('m'):
+	case ('m'):
 	{
 		// Move camera to the right
 		lookAtx += 2.0f;
 		break;
 	}
-	case('n'):
+	case ('n'):
 	{
 		// Move camera to the left
 		lookAtx -= 2.0f;
 		break;
 	}
-	case('j'):
+	case ('j'):
 	{
 		// Move camera up
 		lookAty += 2.0f;
 		break;
 	}
-	case('k'):
+	case ('k'):
 	{
 		// Move camera down
 		lookAty -= 2.0f;
@@ -489,22 +520,23 @@ void keyProc(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-void enableLights() {
+void enableLights()
+{
 	int numLights = settings->lights.size();
-	if (numLights == 0) exit(0); //Verifica se n há luzes
+	if (numLights == 0)
+		exit(0); // Verifica se n há luzes
 	glEnable(GL_LIGHTING);
 	glEnable(GL_RESCALE_NORMAL);
-	if (numLights > 8) { //É o número máximo suportado
+	if (numLights > 8)
+	{ // É o número máximo suportado
 		std::cerr << "XML exceeds maximum number of lights (8)! Number received: " + numLights;
 		exit(1);
 	}
-	float amb[4] = { 1.0f,1.0f,1.0f,1.0f };
+	float amb[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
 }
 
-
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	if (argc != 2)
 	{
@@ -536,7 +568,6 @@ int main(int argc, char *argv[])
 
 	fillList(&settings->rootNode);
 
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
@@ -557,7 +588,6 @@ int main(int argc, char *argv[])
 	glEnable(GL_CULL_FACE);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	
 	if (settings->lights.size() > 0)
 		lightingOn = 1;
 	enableLights();
