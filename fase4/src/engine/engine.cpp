@@ -182,7 +182,7 @@ void drawFigures(int startpos, int endpos)
 		// glColor3f(colors[i].r, colors[i].g, colors[i].b);
 		// Draw the figure
 		glDrawArrays(GL_TRIANGLES, 0, info[i]);
-		drawNormais(i);
+		//drawNormais(i);
 	}
 
 	if (endpos == figCount)
@@ -375,7 +375,7 @@ void lighting(vector<Light>* lights)
 		{
 			glLightfv(label, GL_POSITION, luz.direction.data());
 		}
-		else if (luz.type.compare("spotlight") == 0)
+		else if (luz.type.compare("spot") == 0)
 		{
 			glLightfv(label, GL_POSITION, luz.position.data());
 			glLightfv(label, GL_SPOT_DIRECTION, luz.direction.data());
