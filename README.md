@@ -18,8 +18,8 @@ Project made for **CG** (Computação Gráfica) class, at "Universidade do Minho
 ## Images:
 
 <p align="center">
-  <img src="https://github.com/NopeGuy/CG-2324/tree/main/fase4/configs/SolarSystem1.png?raw=true" />
+  <img src="https://github.com/NopeGuy/CG-2324/tree/main/fase4/configs/SolarSystem1.png" />
 </p>
 <p align="center">
-  <img src="https://github.com/NopeGuy/CG-2324/tree/main/fase4/configs/SolarSystem2.png?raw=true" />
+  <img src="https://github.com/NopeGuy/CG-2324/tree/main/fase4/configs/SolarSystem2.png" />
 </p>
