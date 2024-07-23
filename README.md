@@ -1,4 +1,4 @@
-# ADI-2324
+# CG
 
 ## Group:
 [@NopeGuy](https://github.com/NopeGuy) \
